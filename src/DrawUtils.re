@@ -4,7 +4,7 @@ let showGrid fn ctx w h by => {
   let hw = w /. 2.;
   let hh = h /. 2.;
   let byf = (float_of_int by) /. 2.;
-  MyDom.Canvas.setStrokeStyle ctx "rgba(255, 100, 50, 0.5)";
+  MyDom.Canvas.setStrokeStyle ctx "rgba(0, 200, 50, 0.5)";
   for xs in 0 to by {
     let pts = ref [];
     for ys in 0 to by {
@@ -68,8 +68,32 @@ let slider: MyDom.element => float => float => float => float => (float => unit)
       num.textContent = slider.value
       done(slider.value)
     }
+    const anim = document.createElement('button')
+    anim.textContent = 'a'
+    let animating = null
+    let getTarget = () => Math.random() * (max - min) + min
+    anim.onclick = () => {
+      if (animating) {
+        clearInterval(animating)
+        animating = null
+        return
+      }
+      let target = getTarget();
+      console.log('target', target)
+      animating = setInterval(() => {
+        if (Math.abs(slider.value - target) < step * 2) {
+          target = getTarget()
+          console.log('new', target)
+        }
+        let dir = target > slider.value ? 1 : -1;
+        slider.value = (+slider.value) + dir * step;
+        num.textContent = slider.value
+        done(slider.value)
+      }, 20)
+    }
     container.appendChild(slider)
     container.appendChild(num)
+    container.appendChild(anim)
     document.body.appendChild(container)
     done(initial)
   }
