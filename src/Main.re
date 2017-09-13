@@ -50,14 +50,12 @@ let disc2 a b (x, y) => {
   (s *. sin (a *. pi *. r), s *. cos(b *. pi *. r))
 };
 
-let handkercheif (x, y) => {
+let handkercheif a b (x, y) => {
+  let t = atan2 y x;
+  let r = sqrt((x ** 2.) +. y ** 2.);
+  (sin (a *. (t +. r)) *. r, cos (b *. (t -. r)) *. r)
   /* = r · (sin(θ + r), cos(θ − r)) */
 };
-
-/* let slide: MyDom.element => (float => 'a) => Observish.t 'a = fun node fn => {
-  [%map let a = slider node (-8.) 8. 0.01 1.];
-  fn a
-}; */
 
 let slide fn node => {
   [%map let a = slider node (-8.) 8. 0.01 1.
@@ -69,41 +67,10 @@ let slide2 fn => slide (slide (wrap fn));
 let slide3 fn => slide (slide (slide (wrap fn)));
 let slide4 fn => slide (slide (slide (slide (wrap fn))));
 
+run (slide2 handkercheif);
 run (slide2 disc);
 run (slide2 disc2);
-
-run (fun node => {
-  [%map let a = slider node (-8.) 8. 0.01 1.
-  and b = slider node (-8.) 8. 0.01 1.
-  ];
-  disc2 a b
-});
-
-run (fun node => {
-  [%map let a = slider node (-8.) 8. 0.01 1.
-  and b = slider node (-8.) 8. 0.01 1.
-  and c = slider node (-8.) 8. 0.01 1.
-  and d = slider node (-8.) 8. 0.01 1.
-  ];
-  horseshoe a b c d
-});
-
-run (fun node => {
-  [%map
-    let m = slider node (-8.) 8. 0.01 0.4
-    and n = slider node (-8.) 8. 0.01 1.8
-  ];
-  sinusoidal m n;
-});
-
-run (fun node => {
-  [%map
-    let m = slider node (-8.) 8. 0.01 0.4
-    and n = slider node (-8.) 8. 0.01 1.8
-    and o = slider node (-8.) 8. 0.01 1.8
-    and p = slider node (-8.) 8. 0.01 0.4
-  ];
-  swirl m n o p;
-});
-
-run (fun _ => (fun fin => (fin spherical)));
+run (slide4 horseshoe);
+run (slide2 sinusoidal);
+run (slide4 swirl);
+run (wrap spherical);
