@@ -66,6 +66,13 @@ let waves (b, c, e, f) (x, y) => {
   )
 };
 
+let coswaves (b, c, e, f) (x, y) => {
+  (
+    x +. b *. cos (y /. c ** 2.),
+    y +. e *. cos (x /. f ** 2.)
+  )
+};
+
 let fisheye a (x, y) => {
   let r = sqrt((x ** 2.) +. y ** 2.);
   let s = 1. /. (a *. r +. 1.);
@@ -117,6 +124,7 @@ type attractor =
   | Diamond p4
   | Ex p2
   | Waves p4
+  | CosWaves p4
   | Fisheye p1
   | Fisheye2 p1
   | Popcorn p4
@@ -138,6 +146,7 @@ let name attractor => switch attractor {
   | Diamond p => "Diamond"
   | Ex p => "Ex"
   | Waves p => "Waves"
+  | CosWaves p => "Waves"
   | Fisheye p => "Fisheye"
   | Fisheye2 p => "Fisheye2"
   | Popcorn p => "Popcorn"
@@ -159,6 +168,7 @@ let run attractor => switch (attractor) {
   | Diamond p => diamond p
   | Ex p => ex p
   | Waves p => waves p
+  | CosWaves p => coswaves p
   | Fisheye p => fisheye p
   | Fisheye2 p => fisheye2 p
   | Popcorn p => popcorn p

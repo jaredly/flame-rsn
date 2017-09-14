@@ -2,9 +2,6 @@
 let str = ReasonReact.stringToElement;
 
 let size = 400;
-let fsize = (float_of_int size) /. 2.;
-let ffsize = (float_of_int size);
-let qsize = fsize /. 2.;
 
 let consume fn item => {
   switch item {
@@ -13,53 +10,32 @@ let consume fn item => {
   }
 };
 
-let rand: unit => float = [%bs.raw "function() {return Math.random()}"];
-let runit () => rand () *. 2. -. 1.;
-
-let choose list => List.nth list (int_of_float (rand () *. (float_of_int (List.length list))));
-
-let scale x by off => (x *. by) +. off;
-
-let draw attractors ctx => {
-  MyDom.Canvas.clearRect ctx 0. 0. ffsize ffsize;
+let draw attractors iterations ctx => {
+  MyDom.Canvas.clearRect ctx 0. 0. (float_of_int size) (float_of_int size);
   MyDom.Canvas.setStrokeStyle ctx "rgba(100, 100, 100, 0.3)";
-  MyDom.Canvas.strokeRect ctx qsize qsize fsize fsize;
-  let pos = ref (runit (), runit ());
-  /* Js.log (!pos); */
-  MyDom.Canvas.setFillStyle ctx "#000";
-  if (attractors != []) {
-    for i in 0 to 100000 {
-      let (x, y) = !pos;
-      /* Js.log (x, y); */
-      MyDom.Canvas.fillRect ctx (scale x qsize fsize) (scale y qsize fsize) 1. 1.;
-      let attractor = choose attractors;
-      pos := (Library.run attractor) !pos;
-    };
-  };
-  /* switch attractors {
+  /* MyDom.Canvas.strokeRect ctx qsize qsize fsize fsize; */
+  switch attractors {
   | [] => ()
-  | [attractor, ..._] => {
-    DrawUtils.showGrid (Library.run attractor) ctx fsize fsize 40;
+  | _ => Flame.draw ctx attractors size iterations;
   }
-  } */
 };
 
 let component = ReasonReact.reducerComponentWithRetainedProps "Display";
 let make ::attractors _children => {
   ...component,
-  initialState: fun () => ref None,
-  reducer: fun () _ => ReasonReact.NoUpdate,
+  initialState: fun () => (ref None, 10000),
+  reducer: fun num (ctx, _) => ReasonReact.Update (ctx, num),
   retainedProps: attractors,
-  didMount: fun {state} => {
-    !state |> consume (draw attractors);
+  didMount: fun {state: (ctx, iterations)} => {
+    !ctx |> consume (draw attractors iterations);
     ReasonReact.NoUpdate
   },
-  didUpdate: fun {oldSelf: {retainedProps}, newSelf: {state}} => {
-    if (retainedProps != attractors) {
-      !state |> consume (draw attractors);
+  didUpdate: fun {oldSelf: {retainedProps, state: (_, oldIterations)}, newSelf: {state: (ctx, iterations)}} => {
+    if (retainedProps != attractors || oldIterations !== iterations) {
+      !ctx |> consume (draw attractors iterations);
     }
   },
-  render: fun {handle} => {
+  render: fun {handle, reduce} => {
     <div className=Glamor.(css [
       border "1px solid #aaa",
       cursor "pointer",
@@ -67,8 +43,12 @@ let make ::attractors _children => {
       <RetinaCanvas
         width=size
         height=size
-        onContext=(handle (fun context {state} => state := Some context))
+        onContext=(handle (fun context {state: (ctx, _)} => ctx := Some context))
       />
+      <button onClick=(reduce (fun _ => 10000))>(str "10k")</button>
+      <button onClick=(reduce (fun _ => 100000))>(str "100k")</button>
+      <button onClick=(reduce (fun _ => 1000000))>(str "1m")</button>
+      <button onClick=(reduce (fun _ => 10000000))>(str "10m")</button>
     </div>
   }
 };
