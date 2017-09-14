@@ -2,11 +2,32 @@
 let rand: unit => float = [%bs.raw "function() {return Math.random()}"];
 let runit () => rand () *. 2. -. 1.;
 
-let choose list => List.nth list (int_of_float (rand () *. (float_of_int (List.length list))));
+let choose array => Array.get array (int_of_float (rand () *. (float_of_int (Array.length array))));
 
 let scale x by off => (x *. by) +. off;
 
+let makeWeights attractors => {
+  let total = List.fold_left
+  (fun total (weight, _) => total + weight)
+  0
+  attractors;
+  let weights = Array.make total 0;
+  let at = ref 0;
+  List.iteri 
+  (fun i (weight, _) => {
+    for x in 0 to (weight - 1) {
+      weights.(!at) = i;
+      at := !at + 1;
+    }
+  })
+  attractors;
+  weights;
+};
+
 let flame attractors size iterations => {
+  let indices = makeWeights attractors;
+  let attractarray = Array.of_list (List.map snd attractors);
+
   let ffsize = (float_of_int size);
   let fsize = (float_of_int size) /. 2.;
   let qsize = fsize /. 2.;
@@ -17,7 +38,9 @@ let flame attractors size iterations => {
   };
   for i in 0 to iterations {
     let (x, y) = !pos;
-    let attractor = choose attractors;
+    let index = choose indices;
+    let attractor = attractarray.(index);
+    /* let (z, attractor) = choose attractors; */
     pos := (Library.run attractor) !pos;
     if (i > 20) {
       let x = (scale x qsize fsize) |> int_of_float;

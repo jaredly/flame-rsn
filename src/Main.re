@@ -42,7 +42,11 @@ let attractors = Library.([
 ]);
 
 let initialState = {
-  App.workspace: List.map (fun attractor => ({WorkspaceItem.attractor, enabled: false, weight: 1})) attractors,
+  App.workspace: List.mapi (fun i attractor => ({
+    WorkspaceItem.attractor,
+    enabled: i == 4 || i == 8,
+    weight: 1
+  })) attractors,
   library: List.map (fun attractor => ({LibraryItem.attractor, showMode: Both})) attractors,
 };
 

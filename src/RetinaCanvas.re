@@ -1,6 +1,6 @@
 
 let component = ReasonReact.reducerComponent "RetinaCanvas";
-let make ::width ::height ::onContext _ => {
+let make ::width ::height ::onClick=? ::onContext _ => {
   {
   ...component,
   initialState: fun () => ref false,
@@ -8,6 +8,7 @@ let make ::width ::height ::onContext _ => {
   render: fun {state} => {
     <canvas
       width=(string_of_int (width * 2))
+      onClick=?onClick
       height=(string_of_int (height * 2))
       ref=(fun canvas => {
         if (not !state) {

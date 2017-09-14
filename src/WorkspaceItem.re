@@ -23,8 +23,10 @@ let draw item ctx => {
   DrawUtils.showGrid (Library.run item.attractor) ctx fsize fsize 40;
 };
 
+let evtValue event => (ReactDOMRe.domElementToObj (ReactEventRe.Form.target event))##value;
+
 let component = ReasonReact.reducerComponent "WorkspaceItem";
-let make ::toggleEnabled ::item _children => {
+let make ::setWeight ::toggleEnabled ::item _children => {
   ...component,
   initialState: fun () => ref None,
   reducer: fun () _ => ReasonReact.NoUpdate,
@@ -40,14 +42,20 @@ let make ::toggleEnabled ::item _children => {
       border (item.enabled ? "5px solid #aaa" : "5px solid #fff"),
       cursor "pointer",
       margin "10px",
-    ]) onClick=(fun _ => toggleEnabled ())>
+    ])>
       <RetinaCanvas
+        onClick=(fun _ => toggleEnabled ())
         width=size
         height=size
         onContext=(handle (fun context {state} => state := Some context))
       />
       <div>
         (str (Library.name item.attractor))
+        <input
+          value=(string_of_int item.weight)
+          _type="number"
+          onChange=(fun evt => setWeight (int_of_string (evtValue evt)))
+        />
       </div>
     </div>
   }

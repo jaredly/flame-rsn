@@ -43,7 +43,7 @@ let make ::initialState _children => {
       <div>
         <Display
           attractors=(List.filter (fun {WorkspaceItem.enabled} => enabled) state.workspace |>
-          List.map (fun {WorkspaceItem.attractor} => attractor))
+          List.map (fun {WorkspaceItem.attractor, weight} => (weight, attractor)))
         />
         <div className=(Glamor.(css [
           flex "1",
@@ -66,6 +66,7 @@ let make ::initialState _children => {
         (fun i item => <WorkspaceItem
           key=(string_of_int i)
           toggleEnabled=(reduce (fun () => UpdateWorkspace i {...item, enabled: not item.WorkspaceItem.enabled}))
+          setWeight=(reduce (fun weight => UpdateWorkspace i {...item, weight}))
           item
         />)
         state.workspace

@@ -23,7 +23,7 @@ let draw attractors iterations ctx => {
 let component = ReasonReact.reducerComponentWithRetainedProps "Display";
 let make ::attractors _children => {
   ...component,
-  initialState: fun () => (ref None, 10000),
+  initialState: fun () => (ref None, 100000),
   reducer: fun num (ctx, _) => ReasonReact.Update (ctx, num),
   retainedProps: attractors,
   didMount: fun {state: (ctx, iterations)} => {
@@ -45,8 +45,8 @@ let make ::attractors _children => {
         height=size
         onContext=(handle (fun context {state: (ctx, _)} => ctx := Some context))
       />
-      <button onClick=(reduce (fun _ => 10000))>(str "10k")</button>
       <button onClick=(reduce (fun _ => 100000))>(str "100k")</button>
+      <button onClick=(reduce (fun _ => 500000))>(str "500k")</button>
       <button onClick=(reduce (fun _ => 1000000))>(str "1m")</button>
       <button onClick=(reduce (fun _ => 10000000))>(str "10m")</button>
     </div>
