@@ -26201,8 +26201,6 @@ function consume(fn, item) {
 }
 
 function draw(attractors, iterations, ctx) {
-  ctx.clearRect(0, 0, 400, 400);
-  ctx.strokeStyle = "rgba(100, 100, 100, 0.3)";
   if (attractors) {
     return Flame.draw(ctx, attractors, 400, iterations);
   } else {
@@ -26425,16 +26423,13 @@ function flame(attractors, size, iterations) {
 }
 
 function draw(ctx, attractors, size, iterations) {
-  var fsize = size / 2;
   var ffsize = size;
-  var qsize = fsize / 2;
-  ctx.clearRect(0, 0, ffsize, ffsize);
-  ctx.strokeStyle = "rgba(100, 100, 100, 0.3)";
-  ctx.strokeRect(qsize, qsize, fsize, fsize);
-  ctx.fillStyle = "rgba(100, 100, 100, 0.3)";
+  ctx.globalAlpha = 1;
+  ctx.fillStyle = "black";
+  ctx.fillRect(0, 0, ffsize, ffsize);
   var match = flame(attractors, size, iterations);
   var mx = match[0];
-  ctx.fillStyle = "#000";
+  ctx.fillStyle = "#afa";
   var fmax = match[1];
   for(var x = 0 ,x_finish = size - 1 | 0; x <= x_finish; ++x){
     for(var y = 0 ,y_finish = size - 1 | 0; y <= y_finish; ++y){

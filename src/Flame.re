@@ -69,18 +69,21 @@ let flame attractors size iterations => {
 
 
 let draw ctx attractors size iterations => {
-  let fsize = (float_of_int size) /. 2.;
   let ffsize = (float_of_int size);
+  /* MyDom.Canvas.clearRect ctx 0. 0. ffsize ffsize; */
+  MyDom.Canvas.setGlobalAlpha ctx 1.;
+  MyDom.Canvas.setFillStyle ctx "black";
+  MyDom.Canvas.fillRect ctx 0. 0. ffsize ffsize;
+  /* let fsize = (float_of_int size) /. 2.;
   let qsize = fsize /. 2.;
-  MyDom.Canvas.clearRect ctx 0. 0. ffsize ffsize;
   MyDom.Canvas.setStrokeStyle ctx "rgba(100, 100, 100, 0.3)";
-  MyDom.Canvas.strokeRect ctx qsize qsize fsize fsize;
+  MyDom.Canvas.strokeRect ctx qsize qsize fsize fsize; */
 
-  MyDom.Canvas.setFillStyle ctx "rgba(100, 100, 100, 0.3)";
+  /* MyDom.Canvas.setFillStyle ctx "rgba(100, 100, 100, 0.3)"; */
 
   let (mx, max) = flame attractors size iterations;
 
-  MyDom.Canvas.setFillStyle ctx "#000";
+  MyDom.Canvas.setFillStyle ctx "#afa";
   let fmax = float_of_int max;
   /* let fmax = log fmax /. fmax; */
   for x in 0 to (size - 1) {

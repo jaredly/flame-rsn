@@ -11,9 +11,6 @@ let consume fn item => {
 };
 
 let draw attractors iterations ctx => {
-  MyDom.Canvas.clearRect ctx 0. 0. (float_of_int size) (float_of_int size);
-  MyDom.Canvas.setStrokeStyle ctx "rgba(100, 100, 100, 0.3)";
-  /* MyDom.Canvas.strokeRect ctx qsize qsize fsize fsize; */
   switch attractors {
   | [] => ()
   | _ => Flame.draw ctx attractors size iterations;
