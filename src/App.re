@@ -50,10 +50,10 @@ let make ::initialState _children => {
           overflow "auto",
           alignItems "center",
         ]))>
-          (List.mapi
+          /* (List.mapi
             (fun i item => <LibraryItem key=(string_of_int i) item />)
             state.library
-          |> Array.of_list |> ReasonReact.arrayToElement)
+          |> Array.of_list |> ReasonReact.arrayToElement) */
         </div>
       </div>
       <div className=(Glamor.(css [
