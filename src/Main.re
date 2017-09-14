@@ -1,7 +1,9 @@
 /* open DrawUtils; */
 
 let attractors = Library.([
-  Affine ((0.5, 0., 0.5), (0., 1., 0.)),
+  Affine ((0.5, 0., 0.5), (0., 0.5, 0.)),
+  Affine ((0.5, 0., 0.), (0., 0.5, 0.5)),
+  Affine ((0.5, 0., 0.), (0., 0.5, 0.)),
   Column,
   Tangent (1., 1., 1.),
   Popcorn (
@@ -34,7 +36,7 @@ let attractors = Library.([
 ]);
 
 let initialState = {
-  App.workspace: List.map (fun attractor => ({App.attractor, enabled: false, weight: 1})) attractors,
+  App.workspace: List.map (fun attractor => ({WorkspaceItem.attractor, enabled: false, weight: 1})) attractors,
   library: List.map (fun attractor => ({LibraryItem.attractor, showMode: Both})) attractors,
 };
 

@@ -1,8 +1,8 @@
 
-type libraryShowMode = Grid | Lines | Both;
 type item = {
+  enabled: bool,
+  weight: int,
   attractor: Library.attractor,
-  showMode: libraryShowMode,
 };
 
 let str = ReasonReact.stringToElement;
@@ -23,27 +23,24 @@ let draw item ctx => {
   DrawUtils.showGrid (Library.run item.attractor) ctx fsize fsize 40;
 };
 
-
-let component = ReasonReact.reducerComponentWithRetainedProps "LibraryItem";
-let make ::item _children => {
+let component = ReasonReact.reducerComponent "WorkspaceItem";
+let make ::toggleEnabled ::item _children => {
   ...component,
   initialState: fun () => ref None,
   reducer: fun () _ => ReasonReact.NoUpdate,
-  retainedProps: item,
   didMount: fun {state} => {
     !state |> consume (draw item);
     ReasonReact.NoUpdate
   },
-  didUpdate: fun {oldSelf: {retainedProps}, newSelf: {state}} => {
-    if (retainedProps !== item) {
-      !state |> consume (draw item);
-    }
+  didUpdate: fun {newSelf: {state}} => {
+    /* !state |> consume (draw item); */()
   },
   render: fun {handle} => {
     <div className=Glamor.(css [
-      border "1px solid #aaa",
+      border (item.enabled ? "5px solid #aaa" : "5px solid #fff"),
+      cursor "pointer",
       margin "10px",
-    ])>
+    ]) onClick=(fun _ => toggleEnabled ())>
       <RetinaCanvas
         width=size
         height=size
@@ -55,3 +52,4 @@ let make ::item _children => {
     </div>
   }
 };
+
