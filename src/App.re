@@ -67,6 +67,7 @@ let make ::initialState _children => {
           key=(string_of_int i)
           toggleEnabled=(reduce (fun () => UpdateWorkspace i {...item, enabled: not item.WorkspaceItem.enabled}))
           setWeight=(reduce (fun weight => UpdateWorkspace i {...item, weight}))
+          items=state.workspace
           item
         />)
         state.workspace

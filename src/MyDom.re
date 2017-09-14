@@ -66,6 +66,7 @@ module Canvas = {
     "" [@@bs.send];
   external moveTo : ctx => float => float => unit = "" [@@bs.send];
   external scale : ctx => float => float => unit = "" [@@bs.send];
+  external translate : ctx => float => float => unit = "" [@@bs.send];
   external lineTo : ctx => float => float => unit = "" [@@bs.send];
   external fill : ctx => unit = "" [@@bs.send];
   external beginPath : ctx => unit = "" [@@bs.send];
