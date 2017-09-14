@@ -66,7 +66,7 @@ let slider: MyDom.element => float => float => float => float => (float => unit)
     }
     slider.oninput = function(e) {
       num.textContent = slider.value
-      done(slider.value)
+      done(+slider.value)
     }
     const anim = document.createElement('button')
     anim.textContent = 'a'
@@ -88,7 +88,7 @@ let slider: MyDom.element => float => float => float => float => (float => unit)
         let dir = target > slider.value ? 1 : -1;
         slider.value = (+slider.value) + dir * step;
         num.textContent = slider.value
-        done(slider.value)
+        done(+slider.value)
       }, 20)
     }
     container.appendChild(slider)

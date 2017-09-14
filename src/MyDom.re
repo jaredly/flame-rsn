@@ -59,10 +59,12 @@ module Canvas = {
   external setStrokeStyle : ctx => string => unit = "strokeStyle" [@@bs.set];
   external setStrokeWidth : ctx => float => unit = "lineWidth" [@@bs.set];
   external fillRect : ctx => float => float => float => float => unit = "" [@@bs.send];
+  external strokeRect : ctx => float => float => float => float => unit = "" [@@bs.send];
   external clearRect : ctx => float => float => float => float => unit = "" [@@bs.send];
   external ellipse : ctx => float => float => float => float => float => float => float => unit =
     "" [@@bs.send];
   external moveTo : ctx => float => float => unit = "" [@@bs.send];
+  external scale : ctx => float => float => unit = "" [@@bs.send];
   external lineTo : ctx => float => float => unit = "" [@@bs.send];
   external fill : ctx => unit = "" [@@bs.send];
   external beginPath : ctx => unit = "" [@@bs.send];
@@ -92,6 +94,8 @@ external imageElementToJsObj : imageElement => Js.t {..} = "%identity";
 external canvasRenderingContext2DToJsObj : canvasRenderingContext2D => Js.t {..} = "%identity";
 
 external canvasElementToJsObj : canvasElement => Js.t {..} = "%identity";
+
+external domElToCanvas : Dom.element => canvasElement = "%identity";
 
 external keyboardEventToJsObj : keyboardEvent => Js.t {..} = "%identity";
 
