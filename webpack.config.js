@@ -4,7 +4,7 @@ module.exports = {
     worker: './lib/js/src/worker.js',
   },
   output: {
-    path: __dirname + '/public',
+    path: __dirname + '/docs',
     filename: '[name].js',
   }
 }

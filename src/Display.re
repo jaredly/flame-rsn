@@ -35,7 +35,8 @@ let make ::attractors _children => {
       !ctx |> consume (draw attractors iterations);
     }
   },
-  render: fun {handle, reduce} => {
+  render: fun {handle, reduce, state: (_, iterations)} => {
+    let nums = [|(100_000, "100k"), (500_000, "500k"), (1_000_000, "1m"), (10_000_000, "10m")|];
     <div className=Glamor.(css [
       border "1px solid #aaa",
       cursor "pointer",
@@ -45,10 +46,26 @@ let make ::attractors _children => {
         height=size
         onContext=(handle (fun context {state: (ctx, _)} => ctx := Some context))
       />
-      <button onClick=(reduce (fun _ => 100000))>(str "100k")</button>
-      <button onClick=(reduce (fun _ => 500000))>(str "500k")</button>
-      <button onClick=(reduce (fun _ => 1000000))>(str "1m")</button>
-      <button onClick=(reduce (fun _ => 10000000))>(str "10m")</button>
+      <div className=Glamor.(css[flexDirection "row"])>
+        (Array.map
+        (fun (num, title) => (
+          <button
+            className=Glamor.(css[
+              backgroundColor (num == iterations ? "#aaa": "white"),
+              flex "1",
+              padding "10px",
+              cursor "pointer",
+              border "none",
+              outline "none",
+            ])
+            onClick=(reduce (fun _ => num))
+          >
+            (str title)
+          </button>
+        ))
+        nums
+        |> ReasonReact.arrayToElement)
+      </div>
     </div>
   }
 };
