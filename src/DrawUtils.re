@@ -4,7 +4,7 @@ let showGrid fn ctx w h by => {
   let hw = w /. 2.;
   let hh = h /. 2.;
   let byf = (float_of_int by) /. 2.;
-  MyDom.Canvas.setStrokeStyle ctx "rgba(0, 200, 50, 0.5)";
+  MyDom.Canvas.setStrokeStyle ctx "rgba(100, 110, 100, 0.5)";
   for xs in 0 to by {
     let pts = ref [];
     for ys in 0 to by {
@@ -37,7 +37,7 @@ let showMovement fn ctx w h by => {
   let hw = w /. 2.;
   let hh = h /. 2.;
   let byf = (float_of_int by) /. 2.;
-  MyDom.Canvas.setStrokeStyle ctx "rgba(0, 0, 0, 0.3)";
+  MyDom.Canvas.setStrokeStyle ctx "rgba(0, 0, 0, 0.1)";
   for xs in 0 to by {
     for ys in 0 to by {
       let x = (float_of_int xs) /. byf -. 1.;

@@ -26429,7 +26429,7 @@ function draw(ctx, attractors, size, iterations) {
   ctx.fillRect(0, 0, ffsize, ffsize);
   var match = flame(attractors, size, iterations);
   var mx = match[0];
-  ctx.fillStyle = "#afa";
+  ctx.fillStyle = "#f5a";
   var fmax = match[1];
   for(var x = 0 ,x_finish = size - 1 | 0; x <= x_finish; ++x){
     for(var y = 0 ,y_finish = size - 1 | 0; y <= y_finish; ++y){
@@ -27394,6 +27394,7 @@ function consume(fn, item) {
 function draw(item, ctx) {
   ctx.strokeStyle = "rgba(100, 100, 100, 0.3)";
   ctx.strokeRect(50, 50, 100, 100);
+  DrawUtils.showMovement(Library.run(item[/* attractor */2]), ctx, fsize, fsize, 20);
   return DrawUtils.showGrid(Library.run(item[/* attractor */2]), ctx, fsize, fsize, 40);
 }
 
@@ -27484,7 +27485,7 @@ function showGrid(fn, ctx, w, h, by) {
   var hw = w / 2;
   var hh = h / 2;
   var byf = by / 2;
-  ctx.strokeStyle = "rgba(0, 200, 50, 0.5)";
+  ctx.strokeStyle = "rgba(100, 110, 100, 0.5)";
   for(var xs = 0; xs <= by; ++xs){
     var pts = /* [] */0;
     for(var ys = 0; ys <= by; ++ys){
@@ -27534,7 +27535,7 @@ function showMovement(fn, ctx, w, h, by) {
   var hw = w / 2;
   var hh = h / 2;
   var byf = by / 2;
-  ctx.strokeStyle = "rgba(0, 0, 0, 0.3)";
+  ctx.strokeStyle = "rgba(0, 0, 0, 0.1)";
   for(var xs = 0; xs <= by; ++xs){
     for(var ys = 0; ys <= by; ++ys){
       var x = xs / byf - 1;

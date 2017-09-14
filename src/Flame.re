@@ -83,7 +83,7 @@ let draw ctx attractors size iterations => {
 
   let (mx, max) = flame attractors size iterations;
 
-  MyDom.Canvas.setFillStyle ctx "#afa";
+  MyDom.Canvas.setFillStyle ctx "#f5a";
   let fmax = float_of_int max;
   /* let fmax = log fmax /. fmax; */
   for x in 0 to (size - 1) {

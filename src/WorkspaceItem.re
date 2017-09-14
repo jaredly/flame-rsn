@@ -20,6 +20,7 @@ let consume fn item => {
 let draw item ctx => {
   MyDom.Canvas.setStrokeStyle ctx "rgba(100, 100, 100, 0.3)";
   MyDom.Canvas.strokeRect ctx 50. 50. 100. 100.;
+  DrawUtils.showMovement (Library.run item.attractor) ctx fsize fsize 20;
   DrawUtils.showGrid (Library.run item.attractor) ctx fsize fsize 40;
 };
 
