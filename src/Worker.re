@@ -14,9 +14,11 @@ let work = ref [];
 onmessage self (fun evt => {
   switch evt##data {
   | WorkerClient.Render id attractors size max => {
-    let state = Flame.init attractors size;
-    let filtered = List.filter (fun item => item.id !== id) !waiting;
-    waiting := [{id, state, max}, ...filtered];
+    if (attractors !== []) {
+      let state = Flame.init attractors size;
+      let filtered = List.filter (fun item => item.id !== id) !waiting;
+      waiting := [{id, state, max}, ...filtered];
+    }
     /* Js.log "gof message"; */
   }
   }

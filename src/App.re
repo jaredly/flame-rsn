@@ -2,12 +2,14 @@
 let str = ReasonReact.stringToElement;
 let style = ReactDOMRe.Style.make;
 
+open Library.T;
+
 type state = {
-  workspace: list Types.item,
+  workspace: list item,
 };
 
 type action =
-  | UpdateWorkspace int Types.item;
+  | UpdateWorkspace int item;
 
 let rec set list i item => switch list {
   | [] => []
@@ -39,8 +41,8 @@ let make ::initialState _children => {
     ]))>
       <div>
         <Display
-          attractors=(List.filter (fun {Types.enabled} => enabled) state.workspace |>
-          List.map (fun {Types.attractor, weight} => (weight, attractor)))
+          attractors=(List.filter (fun {enabled} => enabled) state.workspace |>
+          List.map (fun {transform, weight} => (weight, transform)))
         />
         <div className=(Glamor.(css [
           flex "1",
@@ -58,7 +60,7 @@ let make ::initialState _children => {
         (List.mapi
         (fun i item => <LocalWorkspaceItem
           key=(string_of_int i)
-          toggleEnabled=(reduce (fun () => UpdateWorkspace i {...item, enabled: not item.Types.enabled}))
+          toggleEnabled=(reduce (fun () => UpdateWorkspace i {...item, enabled: not item.enabled}))
           setWeight=(reduce (fun weight => UpdateWorkspace i {...item, weight}))
           items=state.workspace
           item

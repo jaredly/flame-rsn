@@ -1,3 +1,8 @@
+html, button {
+  font-family: system-ui;
+  font-weight: 200;
+}
+
 div {
   display: flex;
   flex-direction: column;

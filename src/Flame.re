@@ -6,11 +6,11 @@ let choose array => Array.get array (int_of_float (rand () *. (float_of_int (Arr
 
 let scale x by off => (x *. by) +. off;
 
-let makeWeights attractors => {
+let makeWeights transforms => {
   let total = List.fold_left
   (fun total (weight, _) => total + weight)
   0
-  attractors;
+  transforms;
   let weights = Array.make total 0;
   let at = ref 0;
   List.iteri 
@@ -20,23 +20,23 @@ let makeWeights attractors => {
       at := !at + 1;
     }
   })
-  attractors;
+  transforms;
   weights;
 };
 
 type state = {
   size: int,
   indices: array int,
-  attractors: array Library.attractor,
+  transforms: array Library.transform,
 
   pos: ref (float, float),
   iteration: ref int,
   mx: array int,
 };
 
-let init attractors size => {
-  indices: makeWeights attractors,
-  attractors: Array.of_list (List.map snd attractors),
+let init transforms size => {
+  indices: makeWeights transforms,
+  transforms: Array.of_list (List.map snd transforms),
   pos: ref (runit (), runit ()),
   iteration: ref 0,
   /** TODO try a UInt32Array for better speed? */
@@ -51,8 +51,8 @@ let flameStep state iterations => {
   for i in 0 to iterations {
     let (x, y) = !state.pos;
     let index = choose state.indices;
-    let attractor = state.attractors.(index);
-    state.pos := (Library.run attractor) !state.pos;
+    let transform = state.transforms.(index);
+    state.pos := (Library.run transform) !state.pos;
     if (i > 20) {
       let x = (scale x qsize fsize) |> int_of_float;
       let y = (scale y qsize fsize) |> int_of_float;
@@ -66,9 +66,9 @@ let flameStep state iterations => {
   state.iteration := !state.iteration + iterations;
 };
 
-let flame attractors size iterations => {
-  let indices = makeWeights attractors;
-  let attractarray = Array.of_list (List.map snd attractors);
+let flame transforms size iterations => {
+  let indices = makeWeights transforms;
+  let attractarray = Array.of_list (List.map snd transforms);
 
   let fsize = (float_of_int size) /. 2.;
   let qsize = fsize /. 2.;
@@ -78,8 +78,8 @@ let flame attractors size iterations => {
   for i in 0 to iterations {
     let (x, y) = !pos;
     let index = choose indices;
-    let attractor = attractarray.(index);
-    pos := (Library.run attractor) !pos;
+    let transform = attractarray.(index);
+    pos := (Library.run transform) !pos;
     if (i > 20) {
       let x = (scale x qsize fsize) |> int_of_float;
       let y = (scale y qsize fsize) |> int_of_float;
@@ -155,10 +155,10 @@ let findMax mx size => {
   !max;  
 };
 
-let draw ctx attractors size iterations => {
+let draw ctx transforms size iterations => {
   let start = now ();
 
-  let mx = flame attractors size iterations;
+  let mx = flame transforms size iterations;
   let max = findMax mx size;
 
   Js.log (now () -. start);

@@ -1,10 +1,10 @@
 
 type message =
-  | Render string (list (int, Library.attractor)) int int
+  | Render string (list (int, Library.transform)) int int
   ;
 
 type workerMessage =
-  | Rendered string (array int, int)
+  /* | Rendered string (array int, int) */
   | Blit string MyDom.imagedata int;
 
 type worker;
@@ -23,9 +23,9 @@ let unlisten id => Hashtbl.remove listeners id;
 
 addEventListener worker "message" (fun evt => {
   switch evt##data {
-  | Rendered id (mx, max) => {
+  /* | Rendered id (mx, max) => {
     ()
-  }
+  } */
   | Blit id data iters => {
     if (Hashtbl.mem listeners id) {
       let fn = Hashtbl.find listeners id;

@@ -10,18 +10,11 @@ let consume fn item => {
   }
 };
 
-let draw attractors iterations ctx => {
-  switch attractors {
-  | [] => ()
-  | _ => Flame.draw ctx attractors size iterations;
+let sendFlame id attractors iterations => {
+  if (attractors != []) {
+    WorkerClient.postMessage (WorkerClient.Render id attractors size iterations);
   }
 };
-
-
-let sendFlame id attractors iterations => {
-  WorkerClient.postMessage (WorkerClient.Render id attractors size iterations);
-};
-
 
 let uid: unit => string = [%bs.raw "function(){return Math.random().toString(16)}"];
 
@@ -35,17 +28,8 @@ let component = ReasonReact.reducerComponentWithRetainedProps "Display";
 let make ::attractors _children => {
   ...component,
   initialState: fun () => (ref None, uid(), 0),
-  reducer: fun num (ctx, id, iters) => ReasonReact.Update (ctx, id, num),
+  reducer: fun num (ctx, id, _) => ReasonReact.Update (ctx, id, num),
   retainedProps: attractors,
-  /* didMount: fun {state: (ctx, id)} => {
-    /* !ctx |> consume (draw attractors iterations); */
-    ReasonReact.NoUpdate
-  },
-  didUpdate: fun {oldSelf: {retainedProps, state: (_, oldIterations)}, newSelf: {state: (ctx, iterations)}} => {
-    if (retainedProps != attractors || oldIterations !== iterations) {
-      !ctx |> consume (draw attractors iterations);
-    }
-  }, */
   didMount: fun {state: (ctx, id, _), reduce} => {
     sendFlame id attractors max_iterations;
     WorkerClient.listen id (fun (data, iters) => {
@@ -84,26 +68,3 @@ let make ::attractors _children => {
     </div>
   }
 };
-
-    /* let nums = [|(100_000, "100k"), (500_000, "500k"), (1_000_000, "1m"), (10_000_000, "10m")|]; */
-      /* <div className=Glamor.(css[flexDirection "row"])>
-        (Array.map
-        (fun (num, title) => (
-          <button
-            className=Glamor.(css[
-              backgroundColor (num == iterations ? "#aaa": "white"),
-              flex "1",
-              padding "10px",
-              cursor "pointer",
-              border "none",
-              outline "none",
-            ])
-            onClick=(reduce (fun _ => num))
-          >
-            (str title)
-          </button>
-        ))
-        nums
-        |> ReasonReact.arrayToElement)
-      </div> */
-

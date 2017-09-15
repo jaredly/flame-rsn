@@ -31,7 +31,7 @@ let showGrid fn ctx w h by => {
   };
 };
 
-open Types;
+open Library.T;
 
 let showMovement fn ctx w h by => {
   let hw = w /. 2.;
@@ -54,8 +54,8 @@ let preview item size ctx => {
   MyDom.Canvas.translate ctx (float_of_int size) 0.;
   let qsize = fsize /. 2.;
   MyDom.Canvas.strokeRect ctx qsize qsize fsize fsize;
-  showMovement (Library.run item.attractor) ctx fsize fsize (size / 20);
-  showGrid (Library.run item.attractor) ctx fsize fsize (size / 10);
+  showMovement (Library.run item.transform) ctx fsize fsize (size / 20);
+  showGrid (Library.run item.transform) ctx fsize fsize (size / 10);
   MyDom.Canvas.translate ctx (float_of_int (-size)) 0.;
 };
 

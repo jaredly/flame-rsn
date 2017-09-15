@@ -127,6 +127,8 @@ let fold_down (x, y) => {
   (x, -. abs_float y)
 };
 
+let identity (x, y) => (x, y);
+
 /** TODO this should be generatable via a macro. */
 type attractor =
   | Sinusoidal p2
@@ -147,14 +149,15 @@ type attractor =
   | Tangent p3
   | Column
   | Row
-  | Affine (p3, p3)
+  /* | Affine (p3, p3) */
   | FoldUp
   | FoldDown
   | FoldLeft
   | FoldRight
+  | Identity
 ;
 
-let name attractor => switch attractor {
+/* let name attractor => switch attractor {
   | Sinusoidal _ => "Sinusoidal"
   | Spherical => "Spherical"
   | Swirl _ => "Swirl"
@@ -173,12 +176,11 @@ let name attractor => switch attractor {
   | Tangent _ => "Tangent"
   | Column => "Column"
   | Row => "Row"
-  | Affine _ => "Affine"
   | FoldUp => "FoldUp"
   | FoldLeft => "FoldLeft"
   | FoldRight => "FoldRight"
   | FoldDown => "FoldDown"
-};
+}; */
 
 let run attractor => switch (attractor) {
   | Sinusoidal p => sinusoidal p
@@ -199,9 +201,62 @@ let run attractor => switch (attractor) {
   | Tangent p => tangent p
   | Column => column
   | Row => row
-  | Affine (px, py) => affine (px, py)
+  /* | Affine (px, py) => affine (px, py) */
   | FoldUp => fold_up
   | FoldDown => fold_down
   | FoldLeft => fold_left
   | FoldRight => fold_right
+  | Identity => identity
 };
+
+type p6 = ((float, float, float), (float, float, float));
+  type transform = {
+    pre: p6,
+    attractor: attractor,
+    post: p6,
+  };
+
+let module T = {
+  type item = {
+    enabled: bool,
+    weight: int,
+    transform: transform,
+    name: string,
+  };
+};
+
+open T;
+
+let idMatrix = ((1.0, 0., 0.), (0., 1., 0.));
+
+let run item => {
+  let pre = item.pre == idMatrix ? None : Some (affine item.pre);
+  let post = item.post == idMatrix ? None : Some (affine item.post);
+  let fn = item.attractor === Identity ? None : Some (run item.attractor);
+
+  switch (pre, fn, post) {
+  | (None, None, None) => identity
+  | (Some pre, None, None) => pre
+  | (None, Some fn, None) => fn
+  | (None, None, Some post) => post
+  | (Some pre, None, Some post) =>    (fun pos => pos |> pre |> post)
+  | (Some pre, Some fn, None) =>      (fun pos => pos |> pre |> fn)
+  | (None, Some fn, Some post) =>     (fun pos => pos |> fn |> post)
+  | (Some pre, Some fn, Some post) => (fun pos => pos |> pre |> fn |> post)
+  }
+};
+
+let item ::weight=1 ::enabled=false
+::pre=idMatrix
+::post=idMatrix
+name attractor => {
+  name,
+  weight,
+  enabled,
+  transform: {pre, attractor, post},
+};
+
+let affine ::enabled=false name pre => item ::enabled ::pre name Identity;
+
+
+

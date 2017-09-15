@@ -1,5 +1,5 @@
 
-open Types;
+open Library.T;
 open ReasonReact;
 
 let evtValue event => (ReactDOMRe.domElementToObj (ReactEventRe.Form.target event))##value;
@@ -18,10 +18,18 @@ let render ::onContext ::size ::toggleEnabled ::item ::setWeight => {
         height=size
         onContext
       />
-      <div>
-        (str (Library.name item.attractor))
+      <div className=Glamor.(css[
+        flexDirection "row",
+        fontSize "12px",
+        alignItems "center",
+        padding "4px"
+      ])>
+        (str (item.name))
+        <div className=Glamor.(css[flex "1"])/>
+        (str "Weight:")
         <input
           value=(string_of_int item.weight)
+          className=Glamor.(css[width "30px", marginLeft "8px"])
           _type="number"
           onChange=(fun evt => setWeight (int_of_string (evtValue evt)))
         />

@@ -1657,10 +1657,10 @@ function scale(x, by, off) {
   return x * by + off;
 }
 
-function makeWeights(attractors) {
+function makeWeights(transforms) {
   var total = List.fold_left((function (total, param) {
           return total + param[0] | 0;
-        }), 0, attractors);
+        }), 0, transforms);
   var weights = Caml_array.caml_make_vect(total, 0);
   var at = [0];
   List.iteri((function (i, param) {
@@ -1669,17 +1669,17 @@ function makeWeights(attractors) {
             at[0] = at[0] + 1 | 0;
           }
           return /* () */0;
-        }), attractors);
+        }), transforms);
   return weights;
 }
 
-function init(attractors, size) {
+function init(transforms, size) {
   return /* record */[
           /* size */size,
-          /* indices */makeWeights(attractors),
-          /* attractors */$$Array.of_list(List.map((function (prim) {
+          /* indices */makeWeights(transforms),
+          /* transforms */$$Array.of_list(List.map((function (prim) {
                       return prim[1];
-                    }), attractors)),
+                    }), transforms)),
           /* pos */[/* tuple */[
               runit(/* () */0),
               runit(/* () */0)
@@ -1695,8 +1695,8 @@ function flameStep(state, iterations) {
   for(var i = 0; i <= iterations; ++i){
     var match = state[/* pos */3][0];
     var index = choose(state[/* indices */1]);
-    var attractor = Caml_array.caml_array_get(state[/* attractors */2], index);
-    state[/* pos */3][0] = Curry._1(Library.run(attractor), state[/* pos */3][0]);
+    var transform = Caml_array.caml_array_get(state[/* transforms */2], index);
+    state[/* pos */3][0] = Curry._1(Library.run(transform), state[/* pos */3][0]);
     if (i > 20) {
       var x = scale(match[0], qsize, fsize) | 0;
       var y = scale(match[1], qsize, fsize) | 0;
@@ -1711,11 +1711,11 @@ function flameStep(state, iterations) {
   return /* () */0;
 }
 
-function flame(attractors, size, iterations) {
-  var indices = makeWeights(attractors);
+function flame(transforms, size, iterations) {
+  var indices = makeWeights(transforms);
   var attractarray = $$Array.of_list(List.map((function (prim) {
               return prim[1];
-            }), attractors));
+            }), transforms));
   var fsize = size / 2;
   var qsize = fsize / 2;
   var pos = /* tuple */[
@@ -1726,8 +1726,8 @@ function flame(attractors, size, iterations) {
   for(var i = 0; i <= iterations; ++i){
     var match = pos;
     var index = choose(indices);
-    var attractor = Caml_array.caml_array_get(attractarray, index);
-    pos = Curry._1(Library.run(attractor), pos);
+    var transform = Caml_array.caml_array_get(attractarray, index);
+    pos = Curry._1(Library.run(transform), pos);
     if (i > 20) {
       var x = scale(match[0], qsize, fsize) | 0;
       var y = scale(match[1], qsize, fsize) | 0;
@@ -1798,9 +1798,9 @@ function findMax(mx, size) {
   return max;
 }
 
-function draw(ctx, attractors, size, iterations) {
+function draw(ctx, transforms, size, iterations) {
   var start = Curry._1(now, /* () */0);
-  var mx = flame(attractors, size, iterations);
+  var mx = flame(transforms, size, iterations);
   var max = findMax(mx, size);
   console.log(Curry._1(now, /* () */0) - start);
   return render(ctx, mx, max, size);
@@ -3640,7 +3640,6 @@ exports.__ = __;
 
 
 var List  = __webpack_require__(18);
-var Block = __webpack_require__(19);
 var Curry = __webpack_require__(8);
 var Flame = __webpack_require__(154);
 var MyDom = __webpack_require__(158);
@@ -3651,20 +3650,25 @@ var work = [/* [] */0];
 
 self.onmessage = (function (evt) {
     var match = evt.data;
-    var id = match[0];
-    var state = Flame.init(match[1], match[2]);
-    var filtered = List.filter((function (item) {
-              return +(item[/* id */0] !== id);
-            }))(waiting[0]);
-    waiting[0] = /* :: */[
-      /* record */[
-        /* id */id,
-        /* state */state,
-        /* max */match[3]
-      ],
-      filtered
-    ];
-    return /* () */0;
+    var attractors = match[1];
+    if (attractors !== /* [] */0) {
+      var id = match[0];
+      var state = Flame.init(attractors, match[2]);
+      var filtered = List.filter((function (item) {
+                return +(item[/* id */0] !== id);
+              }))(waiting[0]);
+      waiting[0] = /* :: */[
+        /* record */[
+          /* id */id,
+          /* state */state,
+          /* max */match[3]
+        ],
+        filtered
+      ];
+      return /* () */0;
+    } else {
+      return 0;
+    }
   });
 
 function nextIterations(num) {
@@ -3694,11 +3698,11 @@ function $$process() {
       var mmax = Flame.findMax(state[/* mx */5], state[/* size */0]);
       var imagedata = Curry._1(MyDom.make, state[/* size */0]);
       Flame.renderToData(imagedata, state[/* size */0], state[/* mx */5], mmax);
-      self.postMessage(/* Blit */Block.__(1, [
-              id,
-              imagedata,
-              state[/* iteration */4][0]
-            ]));
+      self.postMessage(/* Blit */[
+            id,
+            imagedata,
+            state[/* iteration */4][0]
+          ]);
       waiting[0] = /* :: */[
         /* record */[
           /* id */id,
@@ -6381,6 +6385,8 @@ exports.undefined_recursive_module = undefined_recursive_module;
 // Generated by BUCKLESCRIPT VERSION 1.9.1, PLEASE EDIT WITH CARE
 
 
+var Curry    = __webpack_require__(8);
+var Caml_obj = __webpack_require__(33);
 
 function sinusoidal(param, param$1) {
   return /* tuple */[
@@ -6597,61 +6603,11 @@ function fold_down(param) {
         ];
 }
 
-function name(attractor) {
-  if (typeof attractor === "number") {
-    switch (attractor) {
-      case 0 : 
-          return "Spherical";
-      case 1 : 
-          return "Column";
-      case 2 : 
-          return "Row";
-      case 3 : 
-          return "FoldUp";
-      case 4 : 
-          return "FoldDown";
-      case 5 : 
-          return "FoldLeft";
-      case 6 : 
-          return "FoldRight";
-      
-    }
-  } else {
-    switch (attractor.tag | 0) {
-      case 0 : 
-          return "Sinusoidal";
-      case 1 : 
-          return "Swirl";
-      case 2 : 
-          return "Horseshow";
-      case 3 : 
-          return "Disc";
-      case 4 : 
-          return "Disc2";
-      case 5 : 
-          return "Handkerchief";
-      case 6 : 
-          return "Hyperbolic";
-      case 7 : 
-          return "Diamond";
-      case 8 : 
-          return "Ex";
-      case 9 : 
-      case 10 : 
-          return "Waves";
-      case 11 : 
-          return "Fisheye";
-      case 12 : 
-          return "Fisheye2";
-      case 13 : 
-          return "Popcorn";
-      case 14 : 
-          return "Tangent";
-      case 15 : 
-          return "Affine";
-      
-    }
-  }
+function identity(param) {
+  return /* tuple */[
+          param[0],
+          param[1]
+        ];
 }
 
 function run(attractor) {
@@ -6671,6 +6627,8 @@ function run(attractor) {
           return fold_left;
       case 6 : 
           return fold_right;
+      case 7 : 
+          return identity;
       
     }
   } else {
@@ -6750,20 +6708,108 @@ function run(attractor) {
           return (function (param) {
               return tangent(partial_arg$14, param);
             });
-      case 15 : 
-          var match = attractor[0];
-          var partial_arg_000 = match[0];
-          var partial_arg_001 = match[1];
-          var partial_arg$15 = /* tuple */[
-            partial_arg_000,
-            partial_arg_001
-          ];
-          return (function (param) {
-              return affine(partial_arg$15, param);
-            });
       
     }
   }
+}
+
+var T = /* module */[];
+
+var idMatrix = /* tuple */[
+  /* tuple */[
+    1.0,
+    0,
+    0
+  ],
+  /* tuple */[
+    0,
+    1,
+    0
+  ]
+];
+
+function run$1(item) {
+  var match = Caml_obj.caml_equal(item[/* pre */0], idMatrix);
+  var pre;
+  if (match !== 0) {
+    pre = /* None */0;
+  } else {
+    var partial_arg = item[/* pre */0];
+    pre = /* Some */[(function (param) {
+          return affine(partial_arg, param);
+        })];
+  }
+  var match$1 = Caml_obj.caml_equal(item[/* post */2], idMatrix);
+  var post;
+  if (match$1 !== 0) {
+    post = /* None */0;
+  } else {
+    var partial_arg$1 = item[/* post */2];
+    post = /* Some */[(function (param) {
+          return affine(partial_arg$1, param);
+        })];
+  }
+  var match$2 = +(item[/* attractor */1] === /* Identity */7);
+  var fn = match$2 !== 0 ? /* None */0 : /* Some */[run(item[/* attractor */1])];
+  if (pre) {
+    var pre$1 = pre[0];
+    if (fn) {
+      var fn$1 = fn[0];
+      if (post) {
+        var post$1 = post[0];
+        return (function (pos) {
+            return Curry._1(post$1, Curry._1(fn$1, Curry._1(pre$1, pos)));
+          });
+      } else {
+        return (function (pos) {
+            return Curry._1(fn$1, Curry._1(pre$1, pos));
+          });
+      }
+    } else if (post) {
+      var post$2 = post[0];
+      return (function (pos) {
+          return Curry._1(post$2, Curry._1(pre$1, pos));
+        });
+    } else {
+      return pre$1;
+    }
+  } else if (fn) {
+    var fn$2 = fn[0];
+    if (post) {
+      var post$3 = post[0];
+      return (function (pos) {
+          return Curry._1(post$3, Curry._1(fn$2, pos));
+        });
+    } else {
+      return fn$2;
+    }
+  } else if (post) {
+    return post[0];
+  } else {
+    return identity;
+  }
+}
+
+function item($staropt$star, $staropt$star$1, $staropt$star$2, $staropt$star$3, name, attractor) {
+  var weight = $staropt$star ? $staropt$star[0] : 1;
+  var enabled = $staropt$star$1 ? $staropt$star$1[0] : /* false */0;
+  var pre = $staropt$star$2 ? $staropt$star$2[0] : idMatrix;
+  var post = $staropt$star$3 ? $staropt$star$3[0] : idMatrix;
+  return /* record */[
+          /* enabled */enabled,
+          /* weight */weight,
+          /* transform : record */[
+            /* pre */pre,
+            /* attractor */attractor,
+            /* post */post
+          ],
+          /* name */name
+        ];
+}
+
+function affine$1($staropt$star, name, pre) {
+  var enabled = $staropt$star ? $staropt$star[0] : /* false */0;
+  return item(/* None */0, /* Some */[enabled], /* Some */[pre], /* None */0, name, /* Identity */7);
 }
 
 var pi = 3.14159;
@@ -6787,13 +6833,16 @@ exports.popcorn      = popcorn;
 exports.tangent      = tangent;
 exports.column       = column;
 exports.row          = row;
-exports.affine       = affine;
 exports.fold_right   = fold_right;
 exports.fold_left    = fold_left;
 exports.fold_up      = fold_up;
 exports.fold_down    = fold_down;
-exports.name         = name;
-exports.run          = run;
+exports.identity     = identity;
+exports.T            = T;
+exports.idMatrix     = idMatrix;
+exports.run          = run$1;
+exports.item         = item;
+exports.affine       = affine$1;
 /* No side effect */
 
 

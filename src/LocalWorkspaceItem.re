@@ -1,4 +1,4 @@
-open Types;
+open Library.T;
 
 let str = ReasonReact.stringToElement;
 
@@ -15,7 +15,7 @@ let consume fn item => {
 let flame items item ctx => {
   let items = List.map (fun i => i == item ? {...item, enabled: not item.enabled} : i) items;
   let attractors = List.filter (fun i => i.enabled) items
-  |> List.map (fun i => (i.weight, i.attractor));
+  |> List.map (fun i => (i.weight, i.transform));
   Flame.draw ctx attractors size 40_000;
   ()
 };
