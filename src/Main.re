@@ -55,7 +55,7 @@ let attractors = Library.([
 let initialState = {
   App.workspace: List.mapi (fun i attractor => ({
     Types.attractor,
-    enabled: i < 4,
+    enabled: i == 0 || i == 22,
     weight: 1
   })) attractors
 };

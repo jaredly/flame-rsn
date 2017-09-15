@@ -18845,7 +18845,7 @@ var attractors = /* :: */[
 
 var initialState = /* record */[/* workspace */List.mapi((function (i, attractor) {
           return /* record */[
-                  /* enabled */+(i < 4),
+                  /* enabled */+(i === 0 || i === 22),
                   /* weight */1,
                   /* attractor */attractor
                 ];
