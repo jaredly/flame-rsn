@@ -18801,16 +18801,40 @@ var attractors = /* :: */[
                                                           1
                                                         ]]),
                                                     /* :: */[
-                                                      /* Spherical */0,
+                                                      /* Swirl */Block.__(1, [/* tuple */[
+                                                            -1,
+                                                            0.5,
+                                                            0.5,
+                                                            -1
+                                                          ]]),
                                                       /* :: */[
-                                                        /* FoldDown */4,
+                                                        /* Swirl */Block.__(1, [/* tuple */[
+                                                              -1,
+                                                              2.0,
+                                                              2.0,
+                                                              -1
+                                                            ]]),
                                                         /* :: */[
-                                                          /* FoldUp */3,
+                                                          /* Swirl */Block.__(1, [/* tuple */[
+                                                                -1,
+                                                                1.0,
+                                                                2.0,
+                                                                -1
+                                                              ]]),
                                                           /* :: */[
-                                                            /* FoldLeft */5,
+                                                            /* Spherical */0,
                                                             /* :: */[
-                                                              /* FoldRight */6,
-                                                              /* [] */0
+                                                              /* FoldDown */4,
+                                                              /* :: */[
+                                                                /* FoldUp */3,
+                                                                /* :: */[
+                                                                  /* FoldLeft */5,
+                                                                  /* :: */[
+                                                                    /* FoldRight */6,
+                                                                    /* [] */0
+                                                                  ]
+                                                                ]
+                                                              ]
                                                             ]
                                                           ]
                                                         ]
