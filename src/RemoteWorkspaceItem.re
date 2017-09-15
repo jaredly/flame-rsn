@@ -29,8 +29,9 @@ let make ::setWeight ::toggleEnabled ::item ::items _children => {
   didMount: fun {state: (ctx, id)} => {
     !ctx |> consume (DrawUtils.preview item size);
     sendFlame id items item;
-    WorkerClient.listen id (fun (mx, max) => {
-      !ctx |> consume (fun ctx => Flame.render ctx mx max size)
+    WorkerClient.listen id (fun data => {
+      ()
+      /* !ctx |> consume (fun ctx => Flame.render ctx mx max size) */
     });
     ReasonReact.NoUpdate
   },

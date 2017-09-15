@@ -56,7 +56,7 @@ let make ::initialState _children => {
         overflow "auto",
       ]))>
         (List.mapi
-        (fun i item => <RemoteWorkspaceItem
+        (fun i item => <LocalWorkspaceItem
           key=(string_of_int i)
           toggleEnabled=(reduce (fun () => UpdateWorkspace i {...item, enabled: not item.Types.enabled}))
           setWeight=(reduce (fun weight => UpdateWorkspace i {...item, weight}))

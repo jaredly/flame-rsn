@@ -25,13 +25,17 @@ let sendFlame id attractors iterations => {
 
 let uid: unit => string = [%bs.raw "function(){return Math.random().toString(16)}"];
 
-let iterations = 10_000_000;
+let max_iterations = 10_000_000;
+
+let blit data size ctx => {
+  MyDom.Canvas.putImageData ctx data 0. 0.;
+};
 
 let component = ReasonReact.reducerComponentWithRetainedProps "Display";
 let make ::attractors _children => {
   ...component,
-  initialState: fun () => (ref None, uid()),
-  reducer: fun () _ => ReasonReact.NoUpdate,
+  initialState: fun () => (ref None, uid(), 0),
+  reducer: fun num (ctx, id, iters) => ReasonReact.Update (ctx, id, num),
   retainedProps: attractors,
   /* didMount: fun {state: (ctx, id)} => {
     /* !ctx |> consume (draw attractors iterations); */
@@ -42,22 +46,24 @@ let make ::attractors _children => {
       !ctx |> consume (draw attractors iterations);
     }
   }, */
-  didMount: fun {state: (ctx, id)} => {
-    sendFlame id attractors iterations;
-    WorkerClient.listen id (fun (mx, max) => {
-      !ctx |> consume (fun ctx => Flame.render ctx mx max size)
+  didMount: fun {state: (ctx, id, _), reduce} => {
+    sendFlame id attractors max_iterations;
+    WorkerClient.listen id (fun (data, iters) => {
+      !ctx |> consume (blit data size);
+      reduce (fun () => iters) ();
+      /* !ctx |> consume (fun ctx => Flame.render ctx mx max size) */
     });
     ReasonReact.NoUpdate
   },
-  didUpdate: fun {oldSelf: {retainedProps}, newSelf: {state: (ctx, id)}} => {
+  didUpdate: fun {oldSelf: {retainedProps}, newSelf: {state: (ctx, id, _)}} => {
     if (retainedProps != attractors) {
-      sendFlame id attractors iterations;
+      sendFlame id attractors max_iterations;
     }
   },
-  willUnmount: fun {state: (_, id)} => {
+  willUnmount: fun {state: (_, id, _)} => {
     WorkerClient.unlisten id;
   },
-  render: fun {handle, reduce, state: (_, iterations)} => {
+  render: fun {handle, reduce, state: (_, _, iterations)} => {
     <div className=Glamor.(css [
       border "1px solid #aaa",
       cursor "pointer",
@@ -65,8 +71,16 @@ let make ::attractors _children => {
       <RetinaCanvas
         width=size
         height=size
-        onContext=(handle (fun context {state: (ctx, _)} => ctx := Some context))
+        onContext=(handle (fun context {state: (ctx, _, _)} => ctx := Some context))
       />
+      <div>
+      <progress
+        value=(string_of_int iterations)
+        max=(string_of_int max_iterations)
+        className=Glamor.(css[width "100%"])
+      />
+        (str (string_of_int iterations))
+      </div>
     </div>
   }
 };

@@ -23,7 +23,7 @@ onmessage self (fun evt => {
 });
 
 let nextIterations num => {
-  if (num < 100_1000) {
+  if (num < 100_000) {
     10_000
   } else if (num < 1_000_000) {
     100_000
@@ -46,7 +46,9 @@ let process () => {
       let next = next + current > max ? max - current : next;
       Flame.flameStep state next;
       let mmax = Flame.findMax state.mx state.size;
-      postMessage self (WorkerClient.Rendered id (state.mx, mmax));
+      let imagedata = MyDom.make state.size;
+      Flame.renderToData imagedata state.size state.mx mmax;
+      postMessage self (WorkerClient.Blit id imagedata !state.iteration);
       waiting := [{id, state, max}, ...!waiting];
     }
   }

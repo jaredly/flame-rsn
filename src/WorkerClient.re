@@ -4,7 +4,8 @@ type message =
   ;
 
 type workerMessage =
-  | Rendered string (array int, int);
+  | Rendered string (array int, int)
+  | Blit string MyDom.imagedata int;
 
 type worker;
 
@@ -23,12 +24,17 @@ let unlisten id => Hashtbl.remove listeners id;
 addEventListener worker "message" (fun evt => {
   switch evt##data {
   | Rendered id (mx, max) => {
+    ()
+  }
+  | Blit id data iters => {
     if (Hashtbl.mem listeners id) {
       let fn = Hashtbl.find listeners id;
-      fn (mx, max);
+      fn (data, iters);
+      /* fn (mx, max); */
     } else {
       Js.log "No listener"
     }
+
   }
   };
 });

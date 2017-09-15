@@ -18,6 +18,19 @@ type keyboardEvent;
 
 external document : document = "" [@@bs.val];
 
+
+type imagedata;
+external data: imagedata => array int = "" [@@bs.get];
+
+let make: int => imagedata = [%bs.raw {|
+  function (size) {
+    var arr = new Uint8ClampedArray(size * size * 4);
+    var data = new ImageData(arr, size, size);
+    return data;
+  }
+|}];
+
+
 external window : window = "" [@@bs.val];
 
 external getBody : document => element = "body" [@@bs.get];
@@ -67,6 +80,7 @@ module Canvas = {
   external moveTo : ctx => float => float => unit = "" [@@bs.send];
   external scale : ctx => float => float => unit = "" [@@bs.send];
   external translate : ctx => float => float => unit = "" [@@bs.send];
+  external putImageData : ctx => imagedata => float => float => unit = "" [@@bs.send];
   external lineTo : ctx => float => float => unit = "" [@@bs.send];
   external fill : ctx => unit = "" [@@bs.send];
   external beginPath : ctx => unit = "" [@@bs.send];

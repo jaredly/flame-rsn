@@ -116,6 +116,33 @@ let render ctx mx max size => {
   };
 };
 
+let renderToData data size mx max => {
+  let buff = MyDom.data data;
+  let fmax = float_of_int max;
+  for x in 0 to (size - 1) {
+    for y in 0 to (size - 1) {
+      let n = (float_of_int mx.(x * size + y));
+      let o = (y * size + x) * 4;
+      if (n > 0.) {
+        let alpha = log n /. log fmax;
+        buff.(o) = (int_of_float (alpha *. 255.));
+        buff.(o + 1) = (int_of_float (alpha *. 40.));
+        buff.(o + 2) = (int_of_float (alpha *. 160.));
+        buff.(o + 3) = 255;
+        /*
+        This is for "without a black background"
+        buff.(o) = 255;
+        buff.(o + 1) = 40;
+        buff.(o + 2) = 160;
+        buff.(o + 3) = (int_of_float (alpha *. 255.));
+         */
+      } else {
+        buff.(o + 3) = 255;
+      }
+    }
+  }
+};
+
 let findMax mx size => {
   let max = ref 0;
   for x in 0 to (size - 1) {
