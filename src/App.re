@@ -3,13 +3,11 @@ let str = ReasonReact.stringToElement;
 let style = ReactDOMRe.Style.make;
 
 type state = {
-  workspace: list WorkspaceItem.item,
-  library: list LibraryItem.item,
+  workspace: list Types.item,
 };
 
 type action =
-  | UpdateLibrary int LibraryItem.item
-  | UpdateWorkspace int WorkspaceItem.item;
+  | UpdateWorkspace int Types.item;
 
 let rec set list i item => switch list {
   | [] => []
@@ -26,8 +24,7 @@ let make ::initialState _children => {
   initialState: fun () => initialState,
   reducer: fun action state => {
     let state = switch action {
-    | UpdateLibrary i item => {...state, library: set state.library i item}
-    | UpdateWorkspace i item => {...state, workspace: set state.workspace i item}
+    | UpdateWorkspace i item => {workspace: set state.workspace i item}
     };
     ReasonReact.Update state
   },
@@ -42,18 +39,14 @@ let make ::initialState _children => {
     ]))>
       <div>
         <Display
-          attractors=(List.filter (fun {WorkspaceItem.enabled} => enabled) state.workspace |>
-          List.map (fun {WorkspaceItem.attractor, weight} => (weight, attractor)))
+          attractors=(List.filter (fun {Types.enabled} => enabled) state.workspace |>
+          List.map (fun {Types.attractor, weight} => (weight, attractor)))
         />
         <div className=(Glamor.(css [
           flex "1",
           overflow "auto",
           alignItems "center",
         ]))>
-          /* (List.mapi
-            (fun i item => <LibraryItem key=(string_of_int i) item />)
-            state.library
-          |> Array.of_list |> ReasonReact.arrayToElement) */
         </div>
       </div>
       <div className=(Glamor.(css [
@@ -63,9 +56,9 @@ let make ::initialState _children => {
         overflow "auto",
       ]))>
         (List.mapi
-        (fun i item => <WorkspaceItem
+        (fun i item => <RemoteWorkspaceItem
           key=(string_of_int i)
-          toggleEnabled=(reduce (fun () => UpdateWorkspace i {...item, enabled: not item.WorkspaceItem.enabled}))
+          toggleEnabled=(reduce (fun () => UpdateWorkspace i {...item, enabled: not item.Types.enabled}))
           setWeight=(reduce (fun weight => UpdateWorkspace i {...item, weight}))
           items=state.workspace
           item

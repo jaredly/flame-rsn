@@ -31,6 +31,8 @@ let showGrid fn ctx w h by => {
   };
 };
 
+open Types;
+
 let showMovement fn ctx w h by => {
   let hw = w /. 2.;
   let hh = h /. 2.;
@@ -45,6 +47,18 @@ let showMovement fn ctx w h by => {
     }
   };
 };
+
+let preview item size ctx => {
+  let fsize = (float_of_int size) /. 2.;
+  MyDom.Canvas.setStrokeStyle ctx "rgba(100, 100, 100, 0.3)";
+  MyDom.Canvas.translate ctx (float_of_int size) 0.;
+  let qsize = fsize /. 2.;
+  MyDom.Canvas.strokeRect ctx qsize qsize fsize fsize;
+  showMovement (Library.run item.attractor) ctx fsize fsize (size / 20);
+  showGrid (Library.run item.attractor) ctx fsize fsize (size / 10);
+  MyDom.Canvas.translate ctx (float_of_int (-size)) 0.;
+};
+
 
 let slider: MyDom.element => float => float => float => float => (float => unit) => unit = [%bs.raw {|
   function(container, min, max, step, initial, done) {

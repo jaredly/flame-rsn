@@ -2,8 +2,12 @@
 
 let attractors = Library.([
   Affine ((0.5, 0., 0.5), (0., 0.5, 0.)),
+  Affine ((0.5, 0., -0.5), (0., 0.5, 0.)),
   Affine ((0.5, 0., 0.), (0., 0.5, 0.5)),
+  Affine ((0.5, 0., 0.), (0., 0.5, -0.5)),
   Affine ((0.5, 0., 0.), (0., 0.5, 0.)),
+  Affine ((-1., 0., 0.), (0., 1., 0.)),
+  Affine ((1., 0., 0.), (0., -1., 0.)),
   Column,
   Tangent (1., 1., 1.),
   Popcorn (
@@ -38,16 +42,22 @@ let attractors = Library.([
   Horseshoe (1., 1., 1., 1.),
   Sinusoidal (2., 2.),
   Swirl (1., 1., 1., 1.),
-  Spherical
+  Swirl (0.1, 0.1, 0.1, 0.1),
+  Swirl (-1., -1., -1., -1.),
+  Swirl (-1., 1., -1., 1.),
+  Spherical,
+  FoldDown,
+  FoldUp,
+  FoldLeft,
+  FoldRight,
 ]);
 
 let initialState = {
   App.workspace: List.mapi (fun i attractor => ({
-    WorkspaceItem.attractor,
-    enabled: i == 4 || i == 8,
+    Types.attractor,
+    enabled: i < 4,
     weight: 1
-  })) attractors,
-  library: List.map (fun attractor => ({LibraryItem.attractor, showMode: Both})) attractors,
+  })) attractors
 };
 
 

@@ -111,6 +111,22 @@ let affine ((a, b, c), (d, e, f)) (x, y) => {
   )
 };
 
+let fold_right (x, y) => {
+  (abs_float x, y)
+};
+
+let fold_left (x, y) => {
+  (-. abs_float x, y)
+};
+
+let fold_up (x, y) => {
+  (x, abs_float y)
+};
+
+let fold_down (x, y) => {
+  (x, -. abs_float y)
+};
+
 /** TODO this should be generatable via a macro. */
 type attractor =
   | Sinusoidal p2
@@ -132,28 +148,36 @@ type attractor =
   | Column
   | Row
   | Affine (p3, p3)
+  | FoldUp
+  | FoldDown
+  | FoldLeft
+  | FoldRight
 ;
 
 let name attractor => switch attractor {
-  | Sinusoidal p => "Sinusoidal"
+  | Sinusoidal _ => "Sinusoidal"
   | Spherical => "Spherical"
-  | Swirl p => "Swirl"
-  | Horseshoe p => "Horseshow"
-  | Disc p => "Disc"
-  | Disc2 p => "Disc2"
-  | Handkercheif p => "Handkerchief"
-  | Hyperbolic p => "Hyperbolic"
-  | Diamond p => "Diamond"
-  | Ex p => "Ex"
-  | Waves p => "Waves"
-  | CosWaves p => "Waves"
-  | Fisheye p => "Fisheye"
-  | Fisheye2 p => "Fisheye2"
-  | Popcorn p => "Popcorn"
-  | Tangent p => "Tangent"
+  | Swirl _ => "Swirl"
+  | Horseshoe _ => "Horseshow"
+  | Disc _ => "Disc"
+  | Disc2 _ => "Disc2"
+  | Handkercheif _ => "Handkerchief"
+  | Hyperbolic _ => "Hyperbolic"
+  | Diamond _ => "Diamond"
+  | Ex _ => "Ex"
+  | Waves _ => "Waves"
+  | CosWaves _ => "Waves"
+  | Fisheye _ => "Fisheye"
+  | Fisheye2 _ => "Fisheye2"
+  | Popcorn _ => "Popcorn"
+  | Tangent _ => "Tangent"
   | Column => "Column"
   | Row => "Row"
-  | Affine (px, py) => "Affine"
+  | Affine _ => "Affine"
+  | FoldUp => "FoldUp"
+  | FoldLeft => "FoldLeft"
+  | FoldRight => "FoldRight"
+  | FoldDown => "FoldDown"
 };
 
 let run attractor => switch (attractor) {
@@ -176,4 +200,8 @@ let run attractor => switch (attractor) {
   | Column => column
   | Row => row
   | Affine (px, py) => affine (px, py)
+  | FoldUp => fold_up
+  | FoldDown => fold_down
+  | FoldLeft => fold_left
+  | FoldRight => fold_right
 };

@@ -15,7 +15,7 @@ let makeWeights attractors => {
   let at = ref 0;
   List.iteri 
   (fun i (weight, _) => {
-    for x in 0 to (weight - 1) {
+    for _ in 0 to (weight - 1) {
       weights.(!at) = i;
       at := !at + 1;
     }
@@ -24,23 +24,61 @@ let makeWeights attractors => {
   weights;
 };
 
+type state = {
+  size: int,
+  indices: array int,
+  attractors: array Library.attractor,
+
+  pos: ref (float, float),
+  iteration: ref int,
+  mx: array int,
+};
+
+let init attractors size => {
+  indices: makeWeights attractors,
+  attractors: Array.of_list (List.map snd attractors),
+  pos: ref (runit (), runit ()),
+  iteration: ref 0,
+  /** TODO try a UInt32Array for better speed? */
+  mx: Array.make (size * size) 0,
+  size,
+};
+
+let flameStep state iterations => {
+  let fsize = (float_of_int state.size) /. 2.;
+  let qsize = fsize /. 2.;
+  /** TODO try a UInt32Array for better speed? */
+  for i in 0 to iterations {
+    let (x, y) = !state.pos;
+    let index = choose state.indices;
+    let attractor = state.attractors.(index);
+    state.pos := (Library.run attractor) !state.pos;
+    if (i > 20) {
+      let x = (scale x qsize fsize) |> int_of_float;
+      let y = (scale y qsize fsize) |> int_of_float;
+      if (x < 0 || x >= state.size || y < 0 || y >= state.size) {
+        ()
+      } else {
+        state.mx.(x * state.size + y) = state.mx.(x * state.size + y) + 1;
+      }
+    }
+  };
+  state.iteration := !state.iteration + iterations;
+};
+
 let flame attractors size iterations => {
   let indices = makeWeights attractors;
   let attractarray = Array.of_list (List.map snd attractors);
 
-  let ffsize = (float_of_int size);
   let fsize = (float_of_int size) /. 2.;
   let qsize = fsize /. 2.;
   let pos = ref (runit (), runit ());
-  let mx = Array.make size (Array.make size 0);
-  for x in 0 to (size - 1) {
-    mx.(x) = Array.make size 0;
-  };
+  /** TODO try a UInt32Array for better speed? */
+  let mx = Array.make (size * size) 0;
   for i in 0 to iterations {
     let (x, y) = !pos;
     let index = choose indices;
     let attractor = attractarray.(index);
-    /* let (z, attractor) = choose attractors; */
     pos := (Library.run attractor) !pos;
     if (i > 20) {
       let x = (scale x qsize fsize) |> int_of_float;
@@ -48,68 +86,55 @@ let flame attractors size iterations => {
       if (x < 0 || x >= size || y < 0 || y >= size) {
         ()
       } else {
-        mx.(x).(y) = mx.(x).(y) + 1;
-      }
-      /* Js.log (x, y); */
-      /* MyDom.Canvas.fillRect ctx (scale x qsize fsize) (scale y qsize fsize) 1. 1.; */
-    }
-  };
-  let max = ref 0;
-  for x in 0 to (size - 1) {
-    for y in 0 to (size - 1) {
-      if (mx.(x).(y) > !max) {
-        max := mx.(x).(y);
+        mx.(x * size + y) = mx.(x * size + y) + 1;
       }
     }
   };
-  
-  (mx, !max);
+
+  mx
 };
-/* let flame  */
 
+let now: unit => float = [%bs.raw "function(){return performance.now()}"];
 
-let draw ctx attractors size iterations => {
+let render ctx mx max size => {
   let ffsize = (float_of_int size);
-  /* MyDom.Canvas.clearRect ctx 0. 0. ffsize ffsize; */
   MyDom.Canvas.setGlobalAlpha ctx 1.;
   MyDom.Canvas.setFillStyle ctx "black";
   MyDom.Canvas.fillRect ctx 0. 0. ffsize ffsize;
-  /* let fsize = (float_of_int size) /. 2.;
-  let qsize = fsize /. 2.;
-  MyDom.Canvas.setStrokeStyle ctx "rgba(100, 100, 100, 0.3)";
-  MyDom.Canvas.strokeRect ctx qsize qsize fsize fsize; */
-
-  /* MyDom.Canvas.setFillStyle ctx "rgba(100, 100, 100, 0.3)"; */
-
-  let (mx, max) = flame attractors size iterations;
 
   MyDom.Canvas.setFillStyle ctx "#f5a";
   let fmax = float_of_int max;
-  /* let fmax = log fmax /. fmax; */
   for x in 0 to (size - 1) {
     for y in 0 to (size - 1) {
-      let n = (float_of_int mx.(x).(y));
+      let n = (float_of_int mx.(x * size + y));
       if (n > 0.) {
-
-      /* let alpha = n /. fmax; */
-      let alpha = log n /. log fmax;
-      /* let alpha = fmax ** alpha; */
-      MyDom.Canvas.setGlobalAlpha ctx alpha;
-      MyDom.Canvas.fillRect ctx (float_of_int x) (float_of_int y) 1. 1.;
+        let alpha = log n /. log fmax;
+        MyDom.Canvas.setGlobalAlpha ctx alpha;
+        MyDom.Canvas.fillRect ctx (float_of_int x) (float_of_int y) 1. 1.;
       }
     }
-  }
+  };
+};
 
-  /* let pos = ref (runit (), runit ());
-  if (attractors != []) {
-    for i in 0 to iterations {
-      if (i > 20) {
-        let (x, y) = !pos;
-        MyDom.Canvas.fillRect ctx (scale x qsize fsize) (scale y qsize fsize) 1. 1.;
-        let attractor = choose attractors;
-        pos := (Library.run attractor) !pos;
+let findMax mx size => {
+  let max = ref 0;
+  for x in 0 to (size - 1) {
+    for y in 0 to (size - 1) {
+      if (mx.(x * size + y) > !max) {
+        max := mx.(x * size + y);
       }
-    };
-  }; */
+    }
+  };
+  !max;  
+};
 
+let draw ctx attractors size iterations => {
+  let start = now ();
+
+  let mx = flame attractors size iterations;
+  let max = findMax mx size;
+
+  Js.log (now () -. start);
+
+  render ctx mx max size;
 };
