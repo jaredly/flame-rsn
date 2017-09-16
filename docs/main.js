@@ -29760,14 +29760,33 @@ function init(transforms, size, zoom) {
 function flameStep(state, iterations) {
   var fsize = state[/* size */0] / 2;
   var qsize = fsize / 2;
+  var match = state[/* zoom */3];
+  var match$1 = match ? match[0] : /* tuple */[
+      /* tuple */[
+        1,
+        0,
+        0
+      ],
+      /* tuple */[
+        0,
+        1,
+        0
+      ]
+    ];
+  var match$2 = match$1[1];
+  var dy = match$2[2];
+  var sy = match$2[1];
+  var match$3 = match$1[0];
+  var dx = match$3[2];
+  var sx = match$3[0];
   for(var i = 0; i <= iterations; ++i){
-    var match = state[/* pos */4][0];
+    var match$4 = state[/* pos */4][0];
     var index = choose(state[/* indices */1]);
     var transform = Caml_array.caml_array_get(state[/* transforms */2], index);
     state[/* pos */4][0] = Curry._1(Library.run(transform), state[/* pos */4][0]);
     if (i > 20) {
-      var x = scale(match[0], qsize, fsize) | 0;
-      var y = scale(match[1], qsize, fsize) | 0;
+      var x = scale(match$4[0], qsize, fsize) * sx + dx | 0;
+      var y = scale(match$4[1], qsize, fsize) * sy + dy | 0;
       if (!(x < 0 || x >= state[/* size */0] || y < 0 || y >= state[/* size */0])) {
         Caml_array.caml_array_set(state[/* mx */6], Caml_int32.imul(x, state[/* size */0]) + y | 0, Caml_array.caml_array_get(state[/* mx */6], Caml_int32.imul(x, state[/* size */0]) + y | 0) + 1 | 0);
       }
@@ -50935,11 +50954,37 @@ function force(v) {
           Caml_builtin_exceptions.assert_failure,
           [
             "Zoomer.re",
-            46,
+            47,
             10
           ]
         ];
   }
+}
+
+function combineMatricies(param, param$1) {
+  var match = param$1[1];
+  var match$1 = param$1[0];
+  var match$2 = param[1];
+  var e = match$2[1];
+  var match$3 = param[0];
+  var a = match$3[0];
+  return /* tuple */[
+          /* tuple */[
+            a * match$1[0],
+            0,
+            match$3[2] + match$1[2] * a
+          ],
+          /* tuple */[
+            0,
+            e * match[1],
+            match$2[2] + match[2] * e
+          ]
+        ];
+}
+
+function spy(x) {
+  console.log(x);
+  return x;
 }
 
 function str(prim) {
@@ -50959,7 +51004,7 @@ function make(onClose, attractors, _) {
               var id = match[/* id */1];
               var ctx = match[/* ctx */0];
               var reduce = param[/* reduce */3];
-              sendFlame(id, attractors, 1000000, match[/* transform */3]);
+              sendFlame(id, attractors, 100000000, match[/* transform */3]);
               WorkerClient.listen(id, (function (param) {
                       var iters = param[1];
                       var data = param[0];
@@ -50977,7 +51022,7 @@ function make(onClose, attractors, _) {
               var transform = match[/* transform */3];
               var match$1 = param[/* oldSelf */0];
               if (Caml_obj.caml_notequal(match$1[/* retainedProps */5], attractors) || transform !== match$1[/* state */4][/* transform */3]) {
-                return sendFlame(match[/* id */1], attractors, 1000000, transform);
+                return sendFlame(match[/* id */1], attractors, 100000000, transform);
               } else {
                 return 0;
               }
@@ -51008,14 +51053,11 @@ function make(onClose, attractors, _) {
                       var match = Curry._1(MyDom.getOffset, ctx$1.canvas);
                       var match_000$1 = (cx - match[0] | 0) * 2;
                       var match_001$1 = (cy - match[1] | 0) * 2;
-                      var cfy = match_001$1;
-                      var cfx = match_000$1;
                       var zoom = 1 + 4 * percent;
-                      var nx = cfx * (1 - zoom);
-                      var ny = cfy * (1 - zoom);
+                      var nx = match_000$1 * (1 - zoom);
+                      var ny = match_001$1 * (1 - zoom);
                       var fsize = 2000;
                       var ns = fsize * zoom;
-                      console.log(cfx, cfy, nx, ny, zoom);
                       ctx$1.clearRect(0, 0, fsize, fsize);
                       ctx$1.drawImage(image, nx, ny, ns, ns);
                       return /* () */0;
@@ -51063,16 +51105,19 @@ function make(onClose, attractors, _) {
                                 /* :: */[
                                   Glamor.zIndex("10000"),
                                   /* :: */[
-                                    Glamor.top("20px"),
+                                    Glamor.top("0"),
                                     /* :: */[
-                                      Glamor.left("20px"),
+                                      Glamor.left("0"),
                                       /* :: */[
-                                        Glamor.bottom("20px"),
+                                        Glamor.bottom("0"),
                                         /* :: */[
-                                          Glamor.right("20px"),
+                                          Glamor.right("0"),
                                           /* :: */[
-                                            Glamor.alignItems("center"),
-                                            /* [] */0
+                                            Glamor.justifyContent("center"),
+                                            /* :: */[
+                                              Glamor.alignItems("center"),
+                                              /* [] */0
+                                            ]
                                           ]
                                         ]
                                       ]
@@ -51099,23 +51144,28 @@ function make(onClose, attractors, _) {
                                   return /* () */0;
                                 })
                             }, ReasonReact.element(/* None */0, /* None */0, RetinaCanvas.make(2000, 2000, /* None */0, /* Some */[(function (evt) {
-                                          var x = evt.clientX;
-                                          var y = evt.clientY;
-                                          var canvas = force(ctx[0]).canvas;
-                                          var p = createImageBitmap(canvas);
-                                          p.then((function (image) {
-                                                  Curry._2(reduce, (function (image) {
-                                                          return /* StartMoving */Block.__(1, [
-                                                                    /* tuple */[
-                                                                      x,
-                                                                      y
-                                                                    ],
-                                                                    image
-                                                                  ]);
-                                                        }), image);
-                                                  return Promise.resolve(/* () */0);
-                                                }));
-                                          return /* () */0;
+                                          var match = evt.button;
+                                          if (match !== 0) {
+                                            return /* () */0;
+                                          } else {
+                                            var x = evt.clientX;
+                                            var y = evt.clientY;
+                                            var canvas = force(ctx[0]).canvas;
+                                            var p = createImageBitmap(canvas);
+                                            p.then((function (image) {
+                                                    Curry._2(reduce, (function (image) {
+                                                            return /* StartMoving */Block.__(1, [
+                                                                      /* tuple */[
+                                                                        x,
+                                                                        y
+                                                                      ],
+                                                                      image
+                                                                    ]);
+                                                          }), image);
+                                                    return Promise.resolve(/* () */0);
+                                                  }));
+                                            return /* () */0;
+                                          }
                                         })], tmp, tmp$1, Curry._1(param[/* handle */0], (function (context, param) {
                                             param[/* state */4][/* ctx */0][0] = /* Some */[context];
                                             return /* () */0;
@@ -51124,7 +51174,7 @@ function make(onClose, attractors, _) {
                                         Glamor.width("100%"),
                                         /* [] */0
                                       ]),
-                                  max: Pervasives.string_of_int(1000000),
+                                  max: Pervasives.string_of_int(100000000),
                                   value: Pervasives.string_of_int(match[/* iterations */2])
                                 })));
             }),
@@ -51149,6 +51199,7 @@ function make(onClose, attractors, _) {
                                 /* moving */state[/* moving */4]
                               ]]);
                 case 1 : 
+                    WorkerClient.stop(state[/* id */1]);
                     return /* Update */Block.__(0, [/* record */[
                                 /* ctx */state[/* ctx */0],
                                 /* id */state[/* id */1],
@@ -51160,11 +51211,25 @@ function make(onClose, attractors, _) {
                                 ]
                               ]]);
                 case 2 : 
+                    var matrix = action[0];
+                    var match = state[/* transform */3];
+                    var tmp;
+                    if (match) {
+                      var mx = match[0];
+                      console.log(mx);
+                      console.log(matrix);
+                      var x = combineMatricies(mx, matrix);
+                      console.log(x);
+                      tmp = x;
+                    } else {
+                      console.log(matrix);
+                      tmp = matrix;
+                    }
                     return /* Update */Block.__(0, [/* record */[
                                 /* ctx */state[/* ctx */0],
                                 /* id */state[/* id */1],
                                 /* iterations */state[/* iterations */2],
-                                /* transform : Some */[action[0]],
+                                /* transform : Some */[tmp],
                                 /* moving : NotMoving */0
                               ]]);
                 
@@ -51176,7 +51241,7 @@ function make(onClose, attractors, _) {
 
 var size = 2000;
 
-var max_iterations = 1000000;
+var max_iterations = 100000000;
 
 exports.int__to_json        = int__to_json;
 exports.ref__to_json        = ref__to_json;
@@ -51217,6 +51282,8 @@ exports.action__to_json     = action__to_json;
 exports.action__from_json   = action__from_json;
 exports.action__to_devtools = action__to_devtools;
 exports.force               = force;
+exports.combineMatricies    = combineMatricies;
+exports.spy                 = spy;
 exports.str                 = str;
 exports.component           = component;
 exports.make                = make;

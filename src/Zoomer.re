@@ -1,6 +1,6 @@
 
 let size = 2000;
-let max_iterations = 1_000_000;
+let max_iterations = 100_000_000;
 
 let blit data _ ctx => {
   MyDom.Canvas.putImageData ctx data 0. 0.;
@@ -31,6 +31,7 @@ type state = {
   ctx: ref (option MyDom.ctx),
   id: string,
   iterations: int,
+  /** TODO maybe this shouldn't be optional, might be faster that way */
   transform: option matrix,
   moving: moving,
 } [@@noserialize];
@@ -46,6 +47,15 @@ let force v => switch v {
 | None => assert false
 };
 
+let combineMatricies ((a, b, c), (d, e, f)) ((a', b', c'), (d', e', f')) => {
+  (
+    (a *. a', 0., c +. c' *. a),
+    (0., e *. e', f +. f' *. e)
+  )
+};
+
+let spy x => {Js.log x; x};
+
 let str = ReasonReact.stringToElement;
 let component = ReasonReact.reducerComponentWithRetainedProps "Zoomer";
 let make ::onClose ::attractors _children => {
@@ -60,9 +70,17 @@ let make ::onClose ::attractors _children => {
   reducer: fun action state => switch action {
   | SetIterations iterations => ReasonReact.Update {...state, iterations}
   | StartMoving pos imageBitmap => {
+      WorkerClient.stop state.id;
       ReasonReact.Update {...state, moving: Moving imageBitmap pos}
     }
-  | StopMoving matrix => ReasonReact.Update {...state, transform: Some matrix, moving: NotMoving}
+  | StopMoving matrix => ReasonReact.Update {
+    ...state, transform: Some (switch state.transform {
+    | Some mx => {
+      Js.log mx; Js.log matrix;
+      spy (combineMatricies mx matrix)
+    }
+    | None => spy (matrix)
+    }), moving: NotMoving}
   },
   retainedProps: attractors,
   didMount: fun {state: {ctx, id, transform}, reduce} => {
@@ -89,10 +107,11 @@ let make ::onClose ::attractors _children => {
       className=Glamor.(css [
         position "absolute",
         zIndex "10000",
-        top    "20px",
-        left   "20px",
-        bottom "20px",
-        right  "20px",
+        top    "0",
+        left   "0",
+        bottom "0",
+        right  "0",
+        justifyContent "center",
         alignItems "center",
       ])
       onClick=(fun _ => onClose ())
@@ -109,6 +128,7 @@ let make ::onClose ::attractors _children => {
         height=size
         onContext=(handle (fun context {state: {ctx}} => ctx := Some context))
         onMouseDown=(fun evt => {
+          [%guard let 0 = ReactEventRe.Mouse.button evt][@else ()];
           let x = ReactEventRe.Mouse.clientX evt;
           let y = ReactEventRe.Mouse.clientY evt;
           let canvas = MyDom.Canvas.canvas (force !ctx);
@@ -133,7 +153,7 @@ let make ::onClose ::attractors _children => {
             let ny = (cfy *. (1. -. zoom));
             let fsize = float_of_int size;
             let ns = (fsize *. zoom);
-            Js.logMany [|cfx, cfy, nx, ny, zoom|];
+            /* Js.logMany [|cfx, cfy, nx, ny, zoom|]; */
             MyDom.Canvas.clearRect ctx 0. 0. fsize fsize;
             MyDom.Canvas.drawImage ctx image nx ny ns ns;
           })

@@ -2164,14 +2164,33 @@ function init(transforms, size, zoom) {
 function flameStep(state, iterations) {
   var fsize = state[/* size */0] / 2;
   var qsize = fsize / 2;
+  var match = state[/* zoom */3];
+  var match$1 = match ? match[0] : /* tuple */[
+      /* tuple */[
+        1,
+        0,
+        0
+      ],
+      /* tuple */[
+        0,
+        1,
+        0
+      ]
+    ];
+  var match$2 = match$1[1];
+  var dy = match$2[2];
+  var sy = match$2[1];
+  var match$3 = match$1[0];
+  var dx = match$3[2];
+  var sx = match$3[0];
   for(var i = 0; i <= iterations; ++i){
-    var match = state[/* pos */4][0];
+    var match$4 = state[/* pos */4][0];
     var index = choose(state[/* indices */1]);
     var transform = Caml_array.caml_array_get(state[/* transforms */2], index);
     state[/* pos */4][0] = Curry._1(Library.run(transform), state[/* pos */4][0]);
     if (i > 20) {
-      var x = scale(match[0], qsize, fsize) | 0;
-      var y = scale(match[1], qsize, fsize) | 0;
+      var x = scale(match$4[0], qsize, fsize) * sx + dx | 0;
+      var y = scale(match$4[1], qsize, fsize) * sy + dy | 0;
       if (!(x < 0 || x >= state[/* size */0] || y < 0 || y >= state[/* size */0])) {
         Caml_array.caml_array_set(state[/* mx */6], Caml_int32.imul(x, state[/* size */0]) + y | 0, Caml_array.caml_array_get(state[/* mx */6], Caml_int32.imul(x, state[/* size */0]) + y | 0) + 1 | 0);
       }

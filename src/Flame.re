@@ -49,6 +49,11 @@ let init transforms size zoom => {
 let flameStep state iterations => {
   let fsize = (float_of_int state.size) /. 2.;
   let qsize = fsize /. 2.;
+  /** TODO support the skew part */
+  let ((sx, _, dx), (_, sy, dy)) = switch state.zoom {
+  | Some zoom => zoom
+  | None => ((1., 0., 0.), (0., 1., 0.))
+  };
   /** TODO try a UInt32Array for better speed? */
   for i in 0 to iterations {
     let (x, y) = !state.pos;
@@ -56,8 +61,8 @@ let flameStep state iterations => {
     let transform = state.transforms.(index);
     state.pos := (Library.run transform) !state.pos;
     if (i > 20) {
-      let x = (scale x qsize fsize) |> int_of_float;
-      let y = (scale y qsize fsize) |> int_of_float;
+      let x = ((scale x qsize fsize) *. sx +. dx) |> int_of_float;
+      let y = ((scale y qsize fsize) *. sy +. dy) |> int_of_float;
       if (x < 0 || x >= state.size || y < 0 || y >= state.size) {
         ()
       } else {

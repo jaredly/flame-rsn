@@ -21,7 +21,6 @@ onmessage self (fun evt => {
       waiting := [{request, state}, ...filtered];
       work := List.filter (fun item => item.request.id !== request.id) !work;
     }
-    /* Js.log "gof message"; */
   }
   | Stop id => {
     work := List.filter (fun item => item.request.id !== id) !work;
