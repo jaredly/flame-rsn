@@ -69,6 +69,16 @@ external addEventListenerImg :
   imageElement => string => (event_like 'a => Js.boolean) => Js.boolean => unit =
   "addEventListener" [@@bs.send]; /* unsafe casts */
 
+type imageBitmap;
+external createImageBitmap: canvasElement => Js.Promise.t imageBitmap = "" [@@bs.val];
+
+let getOffset: canvasElement => (int, int) = [%bs.raw {|
+  function (canvas) {
+    const box = canvas.getBoundingClientRect()
+    return [box.left, box.top];
+  }
+|}];
+
 /* canvas api methods */
 module Canvas = {
   external setFillStyle : ctx => string => unit = "fillStyle" [@@bs.set];
@@ -85,6 +95,7 @@ module Canvas = {
   external scale : ctx => float => float => unit = "" [@@bs.send];
   external translate : ctx => float => float => unit = "" [@@bs.send];
   external putImageData : ctx => imagedata => float => float => unit = "" [@@bs.send];
+  external drawImage: ctx => imageBitmap => float => float => float => float => unit = "" [@@bs.send];
   external lineTo : ctx => float => float => unit = "" [@@bs.send];
   external fill : ctx => unit = "" [@@bs.send];
   external beginPath : ctx => unit = "" [@@bs.send];

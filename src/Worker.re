@@ -19,6 +19,7 @@ onmessage self (fun evt => {
       let state = Flame.init request.attractors request.size request.transform;
       let filtered = List.filter (fun item => item.request.id !== request.id) !waiting;
       waiting := [{request, state}, ...filtered];
+      work := List.filter (fun item => item.request.id !== request.id) !work;
     }
     /* Js.log "gof message"; */
   }

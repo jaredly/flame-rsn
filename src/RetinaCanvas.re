@@ -1,6 +1,6 @@
 
 let component = ReasonReact.reducerComponent "RetinaCanvas";
-let make ::width ::height ::onClick=? ::onContext _ => {
+let make ::width ::height ::onClick=? ::onMouseDown=? ::onMouseMove=? ::onMouseUp=? ::onContext _ => {
   {
   ...component,
   initialState: fun () => ref false,
@@ -9,6 +9,9 @@ let make ::width ::height ::onClick=? ::onContext _ => {
     <canvas
       width=(string_of_int width)
       onClick=?onClick
+      onMouseDown=?onMouseDown
+      onMouseMove=?onMouseMove
+      onMouseUp=?onMouseUp
       height=(string_of_int height)
       style=ReactDOMRe.Style.(make
         width::(string_of_int (width / 2) ^ "px")

@@ -2707,6 +2707,25 @@ function addCanvasToBody(doc, canvas) {
   return /* () */0;
 }
 
+function imageBitmap__to_json() {
+  return "Type is abstract and cannot be converted";
+}
+
+function imageBitmap__from_json() {
+  return Pervasives.failwith("Type is abstract and cannot be converted");
+}
+
+function imageBitmap__to_devtools() {
+  return "Type is abstract and cannot be converted";
+}
+
+var getOffset = (
+  function (canvas) {
+    const box = canvas.getBoundingClientRect()
+    return [box.left, box.top];
+  }
+);
+
 function int__to_json$1(x) {
   return x;
 }
@@ -2938,7 +2957,7 @@ function polyline(ctx, pts) {
           Caml_builtin_exceptions.assert_failure,
           [
             "MyDom.re",
-            106,
+            117,
             11
           ]
         ];
@@ -3058,6 +3077,10 @@ exports.imagedata__from_json                  = imagedata__from_json;
 exports.imagedata__to_devtools                = imagedata__to_devtools;
 exports.make                                  = make;
 exports.addCanvasToBody                       = addCanvasToBody;
+exports.imageBitmap__to_json                  = imageBitmap__to_json;
+exports.imageBitmap__from_json                = imageBitmap__from_json;
+exports.imageBitmap__to_devtools              = imageBitmap__to_devtools;
+exports.getOffset                             = getOffset;
 exports.Canvas                                = Canvas;
 exports.createBodyDiv                         = createBodyDiv;
 exports.createCanvas                          = createCanvas;
@@ -5102,6 +5125,9 @@ self.onmessage = (function (evt) {
           ],
           filtered
         ];
+        work[0] = List.filter((function (item) {
+                  return +(item[/* request */0][/* id */0] !== request[/* id */0]);
+                }))(work[0]);
         return /* () */0;
       } else {
         return 0;
