@@ -1,19 +1,23 @@
 
 open Library.T;
-open ReasonReact;
 
 let evtValue event => (ReactDOMRe.domElementToObj (ReactEventRe.Form.target event))##value;
 let str = ReasonReact.stringToElement;
 
-let render ::onContext ::size ::toggleEnabled ::item ::setWeight => {
+let render ::onContext ::size ::toggleEnabled ::enabled ::item ::setWeight => {
 
     <div className=Glamor.(css [
-      border (item.enabled ? "5px solid #f5a" : "5px solid #fff"),
+      border (enabled ? "5px solid #f5a" : "5px solid #fff"),
       cursor "pointer",
       margin "5px",
-    ])>
+      /* transition "box-shadow .3s ease", */
+      Selector ":hover" [
+        border (enabled ? "5px solid #fad" : "5px solid #fde")
+      ]
+    ])
+    onClick=(fun _ => toggleEnabled ())
+    >
       <RetinaCanvas
-        onClick=(fun _ => toggleEnabled ())
         width=(size * 2)
         height=size
         onContext
@@ -30,6 +34,7 @@ let render ::onContext ::size ::toggleEnabled ::item ::setWeight => {
         <input
           value=(string_of_int item.weight)
           className=Glamor.(css[width "30px", marginLeft "8px"])
+          onClick=(fun evt => ReactEventRe.Mouse.stopPropagation evt)
           _type="number"
           onChange=(fun evt => setWeight (int_of_string (evtValue evt)))
         />

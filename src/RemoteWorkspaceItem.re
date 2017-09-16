@@ -16,18 +16,17 @@ let blit data size ctx => {
 };
 
 let sendFlame id items item => {
-  let items = List.map (fun i => i == item ? {...item, enabled: not item.enabled} : i) items;
-  let transforms = List.filter (fun i => i.enabled) items
-  |> List.map (fun i => (i.weight, i.transform));
-  WorkerClient.postMessage (WorkerClient.Render id transforms size 40_000);
+  let items = List.map (fun (e, i) => i == item ? (not e, i) : (e, i)) items;
+  let attractors = List.filter (fun (e, i) => e) items
+  |> List.map (fun (_, i) => (i.weight, i.transform));
+  /* WorkerClient.postMessage (WorkerClient.Render id transforms size 40_000); */
+  WorkerClient.postMessage (WorkerTypes.Render {id, attractors, size, iterations: 40_000, transform: None});
 };
 
-let uid: unit => string = [%bs.raw "function(){return Math.random().toString(16)}"];
-
 let component = ReasonReact.reducerComponentWithRetainedProps "WorkspaceItem";
-let make ::setWeight ::toggleEnabled ::item ::items _children => {
+let make ::setWeight ::toggleEnabled ::enabled ::item ::items _children => {
   ...component,
-  initialState: fun () => (ref None, uid()),
+  initialState: fun () => (ref None, DrawUtils.uid()),
   retainedProps: (item, items),
   reducer: fun () _ => ReasonReact.NoUpdate,
   didMount: fun {state: (ctx, id)} => {
@@ -53,6 +52,7 @@ let make ::setWeight ::toggleEnabled ::item ::items _children => {
   render: fun {handle} => {
     WorkspaceNode.render
       onContext::(handle (fun context {state: (ctx, _)} => ctx := Some context))
+      ::enabled
       ::size ::item ::toggleEnabled ::setWeight;
   }
 };

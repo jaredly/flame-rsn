@@ -1639,9 +1639,219 @@ exports.raiseUriError            = raiseUriError;
 var List       = __webpack_require__(18);
 var $$Array    = __webpack_require__(43);
 var Curry      = __webpack_require__(8);
+var Js_json    = __webpack_require__(266);
 var Library    = __webpack_require__(77);
 var Caml_array = __webpack_require__(32);
 var Caml_int32 = __webpack_require__(63);
+var Js_boolean = __webpack_require__(267);
+var Pervasives = __webpack_require__(25);
+
+function int__to_json(x) {
+  return x;
+}
+
+function ref__to_json(convert, x) {
+  return Curry._1(convert, x[0]);
+}
+
+function float__to_json(prim) {
+  return prim;
+}
+
+function list__to_json(convert, items) {
+  return $$Array.of_list(List.map(convert, items));
+}
+
+function string__to_json(prim) {
+  return prim;
+}
+
+var array__to_json = $$Array.map;
+
+var bool__to_json = Js_boolean.to_js_boolean;
+
+function option__to_json(convert, value) {
+  if (value) {
+    return /* array */[Curry._1(convert, value[0])];
+  } else {
+    return null;
+  }
+}
+
+function ref__from_json(convert, x) {
+  var match = Curry._1(convert, x);
+  if (match) {
+    return /* Some */[[match[0]]];
+  } else {
+    return /* None */0;
+  }
+}
+
+function int__from_json(x) {
+  var match = Js_json.classify(x);
+  if (typeof match === "number" || match.tag !== 1) {
+    return /* None */0;
+  } else {
+    return /* Some */[match[0] | 0];
+  }
+}
+
+function float__from_json(x) {
+  var match = Js_json.classify(x);
+  if (typeof match === "number" || match.tag !== 1) {
+    return /* None */0;
+  } else {
+    return /* Some */[match[0]];
+  }
+}
+
+function list__from_json(convert, items) {
+  var match = Js_json.classify(items);
+  if (typeof match === "number") {
+    return /* None */0;
+  } else if (match.tag === 3) {
+    try {
+      var items$1 = $$Array.map((function (item) {
+              var match = Curry._1(convert, item);
+              if (match) {
+                return match[0];
+              } else {
+                return Pervasives.failwith("Item failed to parse");
+              }
+            }), match[0]);
+      return /* Some */[$$Array.to_list(items$1)];
+    }
+    catch (exn){
+      return /* None */0;
+    }
+  } else {
+    return /* None */0;
+  }
+}
+
+function string__from_json(value) {
+  var match = Js_json.classify(value);
+  if (typeof match === "number" || match.tag) {
+    return /* None */0;
+  } else {
+    return /* Some */[match[0]];
+  }
+}
+
+function array__from_json(convert, items) {
+  var match = Js_json.classify(items);
+  if (typeof match === "number") {
+    return /* None */0;
+  } else if (match.tag === 3) {
+    try {
+      var items$1 = $$Array.map((function (item) {
+              var match = Curry._1(convert, item);
+              if (match) {
+                return match[0];
+              } else {
+                return Pervasives.failwith("Item failed to parse");
+              }
+            }), match[0]);
+      return /* Some */[items$1];
+    }
+    catch (exn){
+      return /* None */0;
+    }
+  } else {
+    return /* None */0;
+  }
+}
+
+function bool__from_json(value) {
+  var match = Js_json.classify(value);
+  if (typeof match === "number") {
+    switch (match) {
+      case 0 : 
+          return /* Some */[/* false */0];
+      case 1 : 
+          return /* Some */[/* true */1];
+      case 2 : 
+          return /* None */0;
+      
+    }
+  } else {
+    return /* None */0;
+  }
+}
+
+function option__from_json(convert, value) {
+  var match = Js_json.classify(value);
+  if (typeof match === "number") {
+    if (match === 2) {
+      return /* Some */[/* None */0];
+    } else {
+      return /* None */0;
+    }
+  } else if (match.tag === 3) {
+    var match$1 = match[0];
+    if (match$1.length !== 1) {
+      return /* None */0;
+    } else {
+      var item = match$1[0];
+      var match$2 = Curry._1(convert, item);
+      if (match$2) {
+        return /* Some */[/* Some */[match$2[0]]];
+      } else {
+        return /* None */0;
+      }
+    }
+  } else {
+    return /* None */0;
+  }
+}
+
+function ref__to_devtools(convert, x) {
+  return {
+          $bs: "ref",
+          contents: Curry._1(convert, x)
+        };
+}
+
+function int__to_devtools(prim) {
+  return prim;
+}
+
+function float__to_devtools(prim) {
+  return prim;
+}
+
+function string__to_devtools(prim) {
+  return prim;
+}
+
+function bool__to_devtools(prim) {
+  return prim;
+}
+
+function list__to_devtools(convert, items) {
+  return {
+          $bs: "list",
+          items: $$Array.of_list(List.map(convert, items))
+        };
+}
+
+var array__to_devtools = $$Array.map;
+
+function option__to_devtools(convert, item) {
+  if (item) {
+    return {
+            $bs: "optional",
+            empty: /* false */0,
+            value: Curry._1(convert, item[0])
+          };
+  } else {
+    return {
+            $bs: "optional",
+            empty: /* true */1,
+            value: null
+          };
+  }
+}
 
 var rand = (function() {return Math.random()});
 
@@ -1673,13 +1883,275 @@ function makeWeights(transforms) {
   return weights;
 }
 
-function init(transforms, size) {
+function state__to_json(value) {
+  var result = { };
+  result["size"] = value[/* size */0];
+  result["indices"] = $$Array.map(int__to_json, value[/* indices */1]);
+  result["transforms"] = $$Array.map(Library.transform__to_json, value[/* transforms */2]);
+  result["zoom"] = option__to_json((function (param) {
+          var arg1 = param[1];
+          var arg0 = param[0];
+          return /* array */[
+                  /* array */[
+                    arg0[0],
+                    arg0[1],
+                    arg0[2]
+                  ],
+                  /* array */[
+                    arg1[0],
+                    arg1[1],
+                    arg1[2]
+                  ]
+                ];
+        }), value[/* zoom */3]);
+  var param = value[/* pos */4][0];
+  result["pos"] = /* array */[
+    param[0],
+    param[1]
+  ];
+  result["iteration"] = value[/* iteration */5][0];
+  result["mx"] = $$Array.map(int__to_json, value[/* mx */6]);
+  return result;
+}
+
+function state__from_json(value) {
+  var match = Js_json.classify(value);
+  if (typeof match === "number") {
+    return /* None */0;
+  } else if (match.tag === 2) {
+    var value$1 = match[0];
+    var match$1 = value$1["size"];
+    if (match$1 !== undefined) {
+      var match$2 = int__from_json(match$1);
+      if (match$2) {
+        var match$3 = value$1["indices"];
+        if (match$3 !== undefined) {
+          var match$4 = array__from_json(int__from_json, match$3);
+          if (match$4) {
+            var match$5 = value$1["transforms"];
+            if (match$5 !== undefined) {
+              var match$6 = array__from_json(Library.transform__from_json, match$5);
+              if (match$6) {
+                var match$7 = value$1["zoom"];
+                if (match$7 !== undefined) {
+                  var match$8 = option__from_json((function (value) {
+                          var match = Js_json.classify(value);
+                          if (typeof match === "number") {
+                            return /* None */0;
+                          } else if (match.tag === 3) {
+                            var match$1 = match[0];
+                            if (match$1.length !== 2) {
+                              return /* None */0;
+                            } else {
+                              var arg0 = match$1[0];
+                              var arg1 = match$1[1];
+                              var match$2 = Js_json.classify(arg0);
+                              var match$3;
+                              if (typeof match$2 === "number") {
+                                match$3 = /* None */0;
+                              } else if (match$2.tag === 3) {
+                                var match$4 = match$2[0];
+                                if (match$4.length !== 3) {
+                                  match$3 = /* None */0;
+                                } else {
+                                  var arg0$1 = match$4[0];
+                                  var arg1$1 = match$4[1];
+                                  var arg2 = match$4[2];
+                                  var match$5 = float__from_json(arg0$1);
+                                  if (match$5) {
+                                    var match$6 = float__from_json(arg1$1);
+                                    if (match$6) {
+                                      var match$7 = float__from_json(arg2);
+                                      match$3 = match$7 ? /* Some */[/* tuple */[
+                                            match$5[0],
+                                            match$6[0],
+                                            match$7[0]
+                                          ]] : /* None */0;
+                                    } else {
+                                      match$3 = /* None */0;
+                                    }
+                                  } else {
+                                    match$3 = /* None */0;
+                                  }
+                                }
+                              } else {
+                                match$3 = /* None */0;
+                              }
+                              if (match$3) {
+                                var match$8 = Js_json.classify(arg1);
+                                var match$9;
+                                if (typeof match$8 === "number") {
+                                  match$9 = /* None */0;
+                                } else if (match$8.tag === 3) {
+                                  var match$10 = match$8[0];
+                                  if (match$10.length !== 3) {
+                                    match$9 = /* None */0;
+                                  } else {
+                                    var arg0$2 = match$10[0];
+                                    var arg1$2 = match$10[1];
+                                    var arg2$1 = match$10[2];
+                                    var match$11 = float__from_json(arg0$2);
+                                    if (match$11) {
+                                      var match$12 = float__from_json(arg1$2);
+                                      if (match$12) {
+                                        var match$13 = float__from_json(arg2$1);
+                                        match$9 = match$13 ? /* Some */[/* tuple */[
+                                              match$11[0],
+                                              match$12[0],
+                                              match$13[0]
+                                            ]] : /* None */0;
+                                      } else {
+                                        match$9 = /* None */0;
+                                      }
+                                    } else {
+                                      match$9 = /* None */0;
+                                    }
+                                  }
+                                } else {
+                                  match$9 = /* None */0;
+                                }
+                                if (match$9) {
+                                  return /* Some */[/* tuple */[
+                                            match$3[0],
+                                            match$9[0]
+                                          ]];
+                                } else {
+                                  return /* None */0;
+                                }
+                              } else {
+                                return /* None */0;
+                              }
+                            }
+                          } else {
+                            return /* None */0;
+                          }
+                        }), match$7);
+                  if (match$8) {
+                    var match$9 = value$1["pos"];
+                    if (match$9 !== undefined) {
+                      var match$10 = ref__from_json((function (value) {
+                              var match = Js_json.classify(value);
+                              if (typeof match === "number") {
+                                return /* None */0;
+                              } else if (match.tag === 3) {
+                                var match$1 = match[0];
+                                if (match$1.length !== 2) {
+                                  return /* None */0;
+                                } else {
+                                  var arg0 = match$1[0];
+                                  var arg1 = match$1[1];
+                                  var match$2 = float__from_json(arg0);
+                                  if (match$2) {
+                                    var match$3 = float__from_json(arg1);
+                                    if (match$3) {
+                                      return /* Some */[/* tuple */[
+                                                match$2[0],
+                                                match$3[0]
+                                              ]];
+                                    } else {
+                                      return /* None */0;
+                                    }
+                                  } else {
+                                    return /* None */0;
+                                  }
+                                }
+                              } else {
+                                return /* None */0;
+                              }
+                            }), match$9);
+                      if (match$10) {
+                        var match$11 = value$1["iteration"];
+                        if (match$11 !== undefined) {
+                          var match$12 = ref__from_json(int__from_json, match$11);
+                          if (match$12) {
+                            var match$13 = value$1["mx"];
+                            if (match$13 !== undefined) {
+                              var match$14 = array__from_json(int__from_json, match$13);
+                              if (match$14) {
+                                return /* Some */[/* record */[
+                                          /* size */match$2[0],
+                                          /* indices */match$4[0],
+                                          /* transforms */match$6[0],
+                                          /* zoom */match$8[0],
+                                          /* pos */match$10[0],
+                                          /* iteration */match$12[0],
+                                          /* mx */match$14[0]
+                                        ]];
+                              } else {
+                                return /* None */0;
+                              }
+                            } else {
+                              return /* None */0;
+                            }
+                          } else {
+                            return /* None */0;
+                          }
+                        } else {
+                          return /* None */0;
+                        }
+                      } else {
+                        return /* None */0;
+                      }
+                    } else {
+                      return /* None */0;
+                    }
+                  } else {
+                    return /* None */0;
+                  }
+                } else {
+                  return /* None */0;
+                }
+              } else {
+                return /* None */0;
+              }
+            } else {
+              return /* None */0;
+            }
+          } else {
+            return /* None */0;
+          }
+        } else {
+          return /* None */0;
+        }
+      } else {
+        return /* None */0;
+      }
+    } else {
+      return /* None */0;
+    }
+  } else {
+    return /* None */0;
+  }
+}
+
+function state__to_devtools(value) {
+  var result = { };
+  result["size"] = value[/* size */0];
+  result["indices"] = $$Array.map(int__to_devtools, value[/* indices */1]);
+  result["transforms"] = $$Array.map(Library.transform__to_devtools, value[/* transforms */2]);
+  result["zoom"] = option__to_devtools((function () {
+          return Pervasives.failwith("tuple not supported");
+        }), value[/* zoom */3]);
+  result["pos"] = ref__to_devtools((function () {
+          return Pervasives.failwith("tuple not supported");
+        }), value[/* pos */4]);
+  result["iteration"] = ref__to_devtools(int__to_devtools, value[/* iteration */5]);
+  result["mx"] = $$Array.map(int__to_devtools, value[/* mx */6]);
+  return {
+          $bs: "record",
+          type: "state",
+          attributes: result
+        };
+}
+
+function init(transforms, size, zoom) {
   return /* record */[
           /* size */size,
           /* indices */makeWeights(transforms),
           /* transforms */$$Array.of_list(List.map((function (prim) {
                       return prim[1];
                     }), transforms)),
+          /* zoom */zoom,
           /* pos */[/* tuple */[
               runit(/* () */0),
               runit(/* () */0)
@@ -1693,21 +2165,21 @@ function flameStep(state, iterations) {
   var fsize = state[/* size */0] / 2;
   var qsize = fsize / 2;
   for(var i = 0; i <= iterations; ++i){
-    var match = state[/* pos */3][0];
+    var match = state[/* pos */4][0];
     var index = choose(state[/* indices */1]);
     var transform = Caml_array.caml_array_get(state[/* transforms */2], index);
-    state[/* pos */3][0] = Curry._1(Library.run(transform), state[/* pos */3][0]);
+    state[/* pos */4][0] = Curry._1(Library.run(transform), state[/* pos */4][0]);
     if (i > 20) {
       var x = scale(match[0], qsize, fsize) | 0;
       var y = scale(match[1], qsize, fsize) | 0;
       if (!(x < 0 || x >= state[/* size */0] || y < 0 || y >= state[/* size */0])) {
-        Caml_array.caml_array_set(state[/* mx */5], Caml_int32.imul(x, state[/* size */0]) + y | 0, Caml_array.caml_array_get(state[/* mx */5], Caml_int32.imul(x, state[/* size */0]) + y | 0) + 1 | 0);
+        Caml_array.caml_array_set(state[/* mx */6], Caml_int32.imul(x, state[/* size */0]) + y | 0, Caml_array.caml_array_get(state[/* mx */6], Caml_int32.imul(x, state[/* size */0]) + y | 0) + 1 | 0);
       }
       
     }
     
   }
-  state[/* iteration */4][0] = state[/* iteration */4][0] + iterations | 0;
+  state[/* iteration */5][0] = state[/* iteration */5][0] + iterations | 0;
   return /* () */0;
 }
 
@@ -1799,26 +2271,52 @@ function findMax(mx, size) {
 }
 
 function draw(ctx, transforms, size, iterations) {
-  var start = Curry._1(now, /* () */0);
+  Curry._1(now, /* () */0);
   var mx = flame(transforms, size, iterations);
   var max = findMax(mx, size);
-  console.log(Curry._1(now, /* () */0) - start);
   return render(ctx, mx, max, size);
 }
 
-exports.rand         = rand;
-exports.runit        = runit;
-exports.choose       = choose;
-exports.scale        = scale;
-exports.makeWeights  = makeWeights;
-exports.init         = init;
-exports.flameStep    = flameStep;
-exports.flame        = flame;
-exports.now          = now;
-exports.render       = render;
-exports.renderToData = renderToData;
-exports.findMax      = findMax;
-exports.draw         = draw;
+exports.int__to_json        = int__to_json;
+exports.ref__to_json        = ref__to_json;
+exports.float__to_json      = float__to_json;
+exports.list__to_json       = list__to_json;
+exports.string__to_json     = string__to_json;
+exports.array__to_json      = array__to_json;
+exports.bool__to_json       = bool__to_json;
+exports.option__to_json     = option__to_json;
+exports.ref__from_json      = ref__from_json;
+exports.int__from_json      = int__from_json;
+exports.float__from_json    = float__from_json;
+exports.list__from_json     = list__from_json;
+exports.string__from_json   = string__from_json;
+exports.array__from_json    = array__from_json;
+exports.bool__from_json     = bool__from_json;
+exports.option__from_json   = option__from_json;
+exports.ref__to_devtools    = ref__to_devtools;
+exports.int__to_devtools    = int__to_devtools;
+exports.float__to_devtools  = float__to_devtools;
+exports.string__to_devtools = string__to_devtools;
+exports.bool__to_devtools   = bool__to_devtools;
+exports.list__to_devtools   = list__to_devtools;
+exports.array__to_devtools  = array__to_devtools;
+exports.option__to_devtools = option__to_devtools;
+exports.rand                = rand;
+exports.runit               = runit;
+exports.choose              = choose;
+exports.scale               = scale;
+exports.makeWeights         = makeWeights;
+exports.state__to_json      = state__to_json;
+exports.state__from_json    = state__from_json;
+exports.state__to_devtools  = state__to_devtools;
+exports.init                = init;
+exports.flameStep           = flameStep;
+exports.flame               = flame;
+exports.now                 = now;
+exports.render              = render;
+exports.renderToData        = renderToData;
+exports.findMax             = findMax;
+exports.draw                = draw;
 /* rand Not a pure module */
 
 
@@ -1832,7 +2330,369 @@ exports.draw         = draw;
 
 
 var List                    = __webpack_require__(18);
+var $$Array                 = __webpack_require__(43);
+var Curry                   = __webpack_require__(8);
+var Js_json                 = __webpack_require__(266);
+var Js_boolean              = __webpack_require__(267);
+var Pervasives              = __webpack_require__(25);
 var Caml_builtin_exceptions = __webpack_require__(7);
+
+function int__to_json(x) {
+  return x;
+}
+
+function ref__to_json(convert, x) {
+  return Curry._1(convert, x[0]);
+}
+
+function float__to_json(prim) {
+  return prim;
+}
+
+function list__to_json(convert, items) {
+  return $$Array.of_list(List.map(convert, items));
+}
+
+function string__to_json(prim) {
+  return prim;
+}
+
+var array__to_json = $$Array.map;
+
+var bool__to_json = Js_boolean.to_js_boolean;
+
+function option__to_json(convert, value) {
+  if (value) {
+    return /* array */[Curry._1(convert, value[0])];
+  } else {
+    return null;
+  }
+}
+
+function ref__from_json(convert, x) {
+  var match = Curry._1(convert, x);
+  if (match) {
+    return /* Some */[[match[0]]];
+  } else {
+    return /* None */0;
+  }
+}
+
+function int__from_json(x) {
+  var match = Js_json.classify(x);
+  if (typeof match === "number" || match.tag !== 1) {
+    return /* None */0;
+  } else {
+    return /* Some */[match[0] | 0];
+  }
+}
+
+function float__from_json(x) {
+  var match = Js_json.classify(x);
+  if (typeof match === "number" || match.tag !== 1) {
+    return /* None */0;
+  } else {
+    return /* Some */[match[0]];
+  }
+}
+
+function list__from_json(convert, items) {
+  var match = Js_json.classify(items);
+  if (typeof match === "number") {
+    return /* None */0;
+  } else if (match.tag === 3) {
+    try {
+      var items$1 = $$Array.map((function (item) {
+              var match = Curry._1(convert, item);
+              if (match) {
+                return match[0];
+              } else {
+                return Pervasives.failwith("Item failed to parse");
+              }
+            }), match[0]);
+      return /* Some */[$$Array.to_list(items$1)];
+    }
+    catch (exn){
+      return /* None */0;
+    }
+  } else {
+    return /* None */0;
+  }
+}
+
+function string__from_json(value) {
+  var match = Js_json.classify(value);
+  if (typeof match === "number" || match.tag) {
+    return /* None */0;
+  } else {
+    return /* Some */[match[0]];
+  }
+}
+
+function array__from_json(convert, items) {
+  var match = Js_json.classify(items);
+  if (typeof match === "number") {
+    return /* None */0;
+  } else if (match.tag === 3) {
+    try {
+      var items$1 = $$Array.map((function (item) {
+              var match = Curry._1(convert, item);
+              if (match) {
+                return match[0];
+              } else {
+                return Pervasives.failwith("Item failed to parse");
+              }
+            }), match[0]);
+      return /* Some */[items$1];
+    }
+    catch (exn){
+      return /* None */0;
+    }
+  } else {
+    return /* None */0;
+  }
+}
+
+function bool__from_json(value) {
+  var match = Js_json.classify(value);
+  if (typeof match === "number") {
+    switch (match) {
+      case 0 : 
+          return /* Some */[/* false */0];
+      case 1 : 
+          return /* Some */[/* true */1];
+      case 2 : 
+          return /* None */0;
+      
+    }
+  } else {
+    return /* None */0;
+  }
+}
+
+function option__from_json(convert, value) {
+  var match = Js_json.classify(value);
+  if (typeof match === "number") {
+    if (match === 2) {
+      return /* Some */[/* None */0];
+    } else {
+      return /* None */0;
+    }
+  } else if (match.tag === 3) {
+    var match$1 = match[0];
+    if (match$1.length !== 1) {
+      return /* None */0;
+    } else {
+      var item = match$1[0];
+      var match$2 = Curry._1(convert, item);
+      if (match$2) {
+        return /* Some */[/* Some */[match$2[0]]];
+      } else {
+        return /* None */0;
+      }
+    }
+  } else {
+    return /* None */0;
+  }
+}
+
+function ref__to_devtools(convert, x) {
+  return {
+          $bs: "ref",
+          contents: Curry._1(convert, x)
+        };
+}
+
+function int__to_devtools(prim) {
+  return prim;
+}
+
+function float__to_devtools(prim) {
+  return prim;
+}
+
+function string__to_devtools(prim) {
+  return prim;
+}
+
+function bool__to_devtools(prim) {
+  return prim;
+}
+
+function list__to_devtools(convert, items) {
+  return {
+          $bs: "list",
+          items: $$Array.of_list(List.map(convert, items))
+        };
+}
+
+var array__to_devtools = $$Array.map;
+
+function option__to_devtools(convert, item) {
+  if (item) {
+    return {
+            $bs: "optional",
+            empty: /* false */0,
+            value: Curry._1(convert, item[0])
+          };
+  } else {
+    return {
+            $bs: "optional",
+            empty: /* true */1,
+            value: null
+          };
+  }
+}
+
+function imageElement__to_json() {
+  return "Type is abstract and cannot be converted";
+}
+
+function imageElement__from_json() {
+  return Pervasives.failwith("Type is abstract and cannot be converted");
+}
+
+function imageElement__to_devtools() {
+  return "Type is abstract and cannot be converted";
+}
+
+function canvasRenderingContext2D__to_json() {
+  return "Type is abstract and cannot be converted";
+}
+
+function canvasRenderingContext2D__from_json() {
+  return Pervasives.failwith("Type is abstract and cannot be converted");
+}
+
+function canvasRenderingContext2D__to_devtools() {
+  return "Type is abstract and cannot be converted";
+}
+
+function ctx__to_json() {
+  return "Type is abstract and cannot be converted";
+}
+
+function ctx__from_json() {
+  return Pervasives.failwith("Type is abstract and cannot be converted");
+}
+
+function ctx__to_devtools() {
+  return "Type is abstract and cannot be converted";
+}
+
+function canvasElement__to_json() {
+  return "Type is abstract and cannot be converted";
+}
+
+function canvasElement__from_json() {
+  return Pervasives.failwith("Type is abstract and cannot be converted");
+}
+
+function canvasElement__to_devtools() {
+  return "Type is abstract and cannot be converted";
+}
+
+function document__to_json() {
+  return "Type is abstract and cannot be converted";
+}
+
+function document__from_json() {
+  return Pervasives.failwith("Type is abstract and cannot be converted");
+}
+
+function document__to_devtools() {
+  return "Type is abstract and cannot be converted";
+}
+
+function element__to_json() {
+  return "Type is abstract and cannot be converted";
+}
+
+function element__from_json() {
+  return Pervasives.failwith("Type is abstract and cannot be converted");
+}
+
+function element__to_devtools() {
+  return "Type is abstract and cannot be converted";
+}
+
+function window__to_json() {
+  return "Type is abstract and cannot be converted";
+}
+
+function window__from_json() {
+  return Pervasives.failwith("Type is abstract and cannot be converted");
+}
+
+function window__to_devtools() {
+  return "Type is abstract and cannot be converted";
+}
+
+function event_like__to_json(_, _$1) {
+  return "Type is abstract and cannot be converted";
+}
+
+function event_like__from_json(_, _$1) {
+  return Pervasives.failwith("Type is abstract and cannot be converted");
+}
+
+function event_like__to_devtools(_, _$1) {
+  return "Type is abstract and cannot be converted";
+}
+
+function keyboardEvent__to_json() {
+  return "Type is abstract and cannot be converted";
+}
+
+function keyboardEvent__from_json() {
+  return Pervasives.failwith("Type is abstract and cannot be converted");
+}
+
+function keyboardEvent__to_devtools() {
+  return "Type is abstract and cannot be converted";
+}
+
+function blob__to_json() {
+  return "Type is abstract and cannot be converted";
+}
+
+function blob__from_json() {
+  return Pervasives.failwith("Type is abstract and cannot be converted");
+}
+
+function blob__to_devtools() {
+  return "Type is abstract and cannot be converted";
+}
+
+function url__to_json() {
+  return "Type is abstract and cannot be converted";
+}
+
+function url__from_json() {
+  return Pervasives.failwith("Type is abstract and cannot be converted");
+}
+
+function url__to_devtools() {
+  return "Type is abstract and cannot be converted";
+}
+
+var partial_arg = URL;
+
+function createObjectURL(param) {
+  return partial_arg.createObjectURL(param);
+}
+
+function imagedata__to_json() {
+  return "Type is abstract and cannot be converted";
+}
+
+function imagedata__from_json() {
+  return Pervasives.failwith("Type is abstract and cannot be converted");
+}
+
+function imagedata__to_devtools() {
+  return "Type is abstract and cannot be converted";
+}
 
 var make = (
   function (size) {
@@ -1845,6 +2705,213 @@ var make = (
 function addCanvasToBody(doc, canvas) {
   doc.body.appendChild(canvas);
   return /* () */0;
+}
+
+function int__to_json$1(x) {
+  return x;
+}
+
+function ref__to_json$1(convert, x) {
+  return Curry._1(convert, x[0]);
+}
+
+function float__to_json$1(prim) {
+  return prim;
+}
+
+function list__to_json$1(convert, items) {
+  return $$Array.of_list(List.map(convert, items));
+}
+
+function string__to_json$1(prim) {
+  return prim;
+}
+
+var array__to_json$1 = $$Array.map;
+
+var bool__to_json$1 = Js_boolean.to_js_boolean;
+
+function option__to_json$1(convert, value) {
+  if (value) {
+    return /* array */[Curry._1(convert, value[0])];
+  } else {
+    return null;
+  }
+}
+
+function ref__from_json$1(convert, x) {
+  var match = Curry._1(convert, x);
+  if (match) {
+    return /* Some */[[match[0]]];
+  } else {
+    return /* None */0;
+  }
+}
+
+function int__from_json$1(x) {
+  var match = Js_json.classify(x);
+  if (typeof match === "number" || match.tag !== 1) {
+    return /* None */0;
+  } else {
+    return /* Some */[match[0] | 0];
+  }
+}
+
+function float__from_json$1(x) {
+  var match = Js_json.classify(x);
+  if (typeof match === "number" || match.tag !== 1) {
+    return /* None */0;
+  } else {
+    return /* Some */[match[0]];
+  }
+}
+
+function list__from_json$1(convert, items) {
+  var match = Js_json.classify(items);
+  if (typeof match === "number") {
+    return /* None */0;
+  } else if (match.tag === 3) {
+    try {
+      var items$1 = $$Array.map((function (item) {
+              var match = Curry._1(convert, item);
+              if (match) {
+                return match[0];
+              } else {
+                return Pervasives.failwith("Item failed to parse");
+              }
+            }), match[0]);
+      return /* Some */[$$Array.to_list(items$1)];
+    }
+    catch (exn){
+      return /* None */0;
+    }
+  } else {
+    return /* None */0;
+  }
+}
+
+function string__from_json$1(value) {
+  var match = Js_json.classify(value);
+  if (typeof match === "number" || match.tag) {
+    return /* None */0;
+  } else {
+    return /* Some */[match[0]];
+  }
+}
+
+function array__from_json$1(convert, items) {
+  var match = Js_json.classify(items);
+  if (typeof match === "number") {
+    return /* None */0;
+  } else if (match.tag === 3) {
+    try {
+      var items$1 = $$Array.map((function (item) {
+              var match = Curry._1(convert, item);
+              if (match) {
+                return match[0];
+              } else {
+                return Pervasives.failwith("Item failed to parse");
+              }
+            }), match[0]);
+      return /* Some */[items$1];
+    }
+    catch (exn){
+      return /* None */0;
+    }
+  } else {
+    return /* None */0;
+  }
+}
+
+function bool__from_json$1(value) {
+  var match = Js_json.classify(value);
+  if (typeof match === "number") {
+    switch (match) {
+      case 0 : 
+          return /* Some */[/* false */0];
+      case 1 : 
+          return /* Some */[/* true */1];
+      case 2 : 
+          return /* None */0;
+      
+    }
+  } else {
+    return /* None */0;
+  }
+}
+
+function option__from_json$1(convert, value) {
+  var match = Js_json.classify(value);
+  if (typeof match === "number") {
+    if (match === 2) {
+      return /* Some */[/* None */0];
+    } else {
+      return /* None */0;
+    }
+  } else if (match.tag === 3) {
+    var match$1 = match[0];
+    if (match$1.length !== 1) {
+      return /* None */0;
+    } else {
+      var item = match$1[0];
+      var match$2 = Curry._1(convert, item);
+      if (match$2) {
+        return /* Some */[/* Some */[match$2[0]]];
+      } else {
+        return /* None */0;
+      }
+    }
+  } else {
+    return /* None */0;
+  }
+}
+
+function ref__to_devtools$1(convert, x) {
+  return {
+          $bs: "ref",
+          contents: Curry._1(convert, x)
+        };
+}
+
+function int__to_devtools$1(prim) {
+  return prim;
+}
+
+function float__to_devtools$1(prim) {
+  return prim;
+}
+
+function string__to_devtools$1(prim) {
+  return prim;
+}
+
+function bool__to_devtools$1(prim) {
+  return prim;
+}
+
+function list__to_devtools$1(convert, items) {
+  return {
+          $bs: "list",
+          items: $$Array.of_list(List.map(convert, items))
+        };
+}
+
+var array__to_devtools$1 = $$Array.map;
+
+function option__to_devtools$1(convert, item) {
+  if (item) {
+    return {
+            $bs: "optional",
+            empty: /* false */0,
+            value: Curry._1(convert, item[0])
+          };
+  } else {
+    return {
+            $bs: "optional",
+            empty: /* true */1,
+            value: null
+          };
+  }
 }
 
 function line(ctx, param, param$1) {
@@ -1871,7 +2938,7 @@ function polyline(ctx, pts) {
           Caml_builtin_exceptions.assert_failure,
           [
             "MyDom.re",
-            102,
+            106,
             11
           ]
         ];
@@ -1879,6 +2946,30 @@ function polyline(ctx, pts) {
 }
 
 var Canvas = /* module */[
+  /* int__to_json */int__to_json$1,
+  /* ref__to_json */ref__to_json$1,
+  /* float__to_json */float__to_json$1,
+  /* list__to_json */list__to_json$1,
+  /* string__to_json */string__to_json$1,
+  /* array__to_json */array__to_json$1,
+  /* bool__to_json */bool__to_json$1,
+  /* option__to_json */option__to_json$1,
+  /* ref__from_json */ref__from_json$1,
+  /* int__from_json */int__from_json$1,
+  /* float__from_json */float__from_json$1,
+  /* list__from_json */list__from_json$1,
+  /* string__from_json */string__from_json$1,
+  /* array__from_json */array__from_json$1,
+  /* bool__from_json */bool__from_json$1,
+  /* option__from_json */option__from_json$1,
+  /* ref__to_devtools */ref__to_devtools$1,
+  /* int__to_devtools */int__to_devtools$1,
+  /* float__to_devtools */float__to_devtools$1,
+  /* string__to_devtools */string__to_devtools$1,
+  /* bool__to_devtools */bool__to_devtools$1,
+  /* list__to_devtools */list__to_devtools$1,
+  /* array__to_devtools */array__to_devtools$1,
+  /* option__to_devtools */option__to_devtools$1,
   /* line */line,
   /* polyline */polyline
 ];
@@ -1904,13 +2995,74 @@ function createCtx(container, width, height) {
   return canv.getContext("2d");
 }
 
-exports.make            = make;
-exports.addCanvasToBody = addCanvasToBody;
-exports.Canvas          = Canvas;
-exports.createBodyDiv   = createBodyDiv;
-exports.createCanvas    = createCanvas;
-exports.createCtx       = createCtx;
-/* make Not a pure module */
+exports.int__to_json                          = int__to_json;
+exports.ref__to_json                          = ref__to_json;
+exports.float__to_json                        = float__to_json;
+exports.list__to_json                         = list__to_json;
+exports.string__to_json                       = string__to_json;
+exports.array__to_json                        = array__to_json;
+exports.bool__to_json                         = bool__to_json;
+exports.option__to_json                       = option__to_json;
+exports.ref__from_json                        = ref__from_json;
+exports.int__from_json                        = int__from_json;
+exports.float__from_json                      = float__from_json;
+exports.list__from_json                       = list__from_json;
+exports.string__from_json                     = string__from_json;
+exports.array__from_json                      = array__from_json;
+exports.bool__from_json                       = bool__from_json;
+exports.option__from_json                     = option__from_json;
+exports.ref__to_devtools                      = ref__to_devtools;
+exports.int__to_devtools                      = int__to_devtools;
+exports.float__to_devtools                    = float__to_devtools;
+exports.string__to_devtools                   = string__to_devtools;
+exports.bool__to_devtools                     = bool__to_devtools;
+exports.list__to_devtools                     = list__to_devtools;
+exports.array__to_devtools                    = array__to_devtools;
+exports.option__to_devtools                   = option__to_devtools;
+exports.imageElement__to_json                 = imageElement__to_json;
+exports.imageElement__from_json               = imageElement__from_json;
+exports.imageElement__to_devtools             = imageElement__to_devtools;
+exports.canvasRenderingContext2D__to_json     = canvasRenderingContext2D__to_json;
+exports.canvasRenderingContext2D__from_json   = canvasRenderingContext2D__from_json;
+exports.canvasRenderingContext2D__to_devtools = canvasRenderingContext2D__to_devtools;
+exports.ctx__to_json                          = ctx__to_json;
+exports.ctx__from_json                        = ctx__from_json;
+exports.ctx__to_devtools                      = ctx__to_devtools;
+exports.canvasElement__to_json                = canvasElement__to_json;
+exports.canvasElement__from_json              = canvasElement__from_json;
+exports.canvasElement__to_devtools            = canvasElement__to_devtools;
+exports.document__to_json                     = document__to_json;
+exports.document__from_json                   = document__from_json;
+exports.document__to_devtools                 = document__to_devtools;
+exports.element__to_json                      = element__to_json;
+exports.element__from_json                    = element__from_json;
+exports.element__to_devtools                  = element__to_devtools;
+exports.window__to_json                       = window__to_json;
+exports.window__from_json                     = window__from_json;
+exports.window__to_devtools                   = window__to_devtools;
+exports.event_like__to_json                   = event_like__to_json;
+exports.event_like__from_json                 = event_like__from_json;
+exports.event_like__to_devtools               = event_like__to_devtools;
+exports.keyboardEvent__to_json                = keyboardEvent__to_json;
+exports.keyboardEvent__from_json              = keyboardEvent__from_json;
+exports.keyboardEvent__to_devtools            = keyboardEvent__to_devtools;
+exports.blob__to_json                         = blob__to_json;
+exports.blob__from_json                       = blob__from_json;
+exports.blob__to_devtools                     = blob__to_devtools;
+exports.url__to_json                          = url__to_json;
+exports.url__from_json                        = url__from_json;
+exports.url__to_devtools                      = url__to_devtools;
+exports.createObjectURL                       = createObjectURL;
+exports.imagedata__to_json                    = imagedata__to_json;
+exports.imagedata__from_json                  = imagedata__from_json;
+exports.imagedata__to_devtools                = imagedata__to_devtools;
+exports.make                                  = make;
+exports.addCanvasToBody                       = addCanvasToBody;
+exports.Canvas                                = Canvas;
+exports.createBodyDiv                         = createBodyDiv;
+exports.createCanvas                          = createCanvas;
+exports.createCtx                             = createCtx;
+/* partial_arg Not a pure module */
 
 
 /***/ }),
@@ -3639,10 +4791,287 @@ exports.__ = __;
 // Generated by BUCKLESCRIPT VERSION 1.9.1, PLEASE EDIT WITH CARE
 
 
-var List  = __webpack_require__(18);
-var Curry = __webpack_require__(8);
-var Flame = __webpack_require__(154);
-var MyDom = __webpack_require__(158);
+var List        = __webpack_require__(18);
+var $$Array     = __webpack_require__(43);
+var Curry       = __webpack_require__(8);
+var Flame       = __webpack_require__(154);
+var MyDom       = __webpack_require__(158);
+var Js_json     = __webpack_require__(266);
+var Js_boolean  = __webpack_require__(267);
+var Pervasives  = __webpack_require__(25);
+var WorkerTypes = __webpack_require__(273);
+
+function int__to_json(x) {
+  return x;
+}
+
+function ref__to_json(convert, x) {
+  return Curry._1(convert, x[0]);
+}
+
+function float__to_json(prim) {
+  return prim;
+}
+
+function list__to_json(convert, items) {
+  return $$Array.of_list(List.map(convert, items));
+}
+
+function string__to_json(prim) {
+  return prim;
+}
+
+var array__to_json = $$Array.map;
+
+var bool__to_json = Js_boolean.to_js_boolean;
+
+function option__to_json(convert, value) {
+  if (value) {
+    return /* array */[Curry._1(convert, value[0])];
+  } else {
+    return null;
+  }
+}
+
+function ref__from_json(convert, x) {
+  var match = Curry._1(convert, x);
+  if (match) {
+    return /* Some */[[match[0]]];
+  } else {
+    return /* None */0;
+  }
+}
+
+function int__from_json(x) {
+  var match = Js_json.classify(x);
+  if (typeof match === "number" || match.tag !== 1) {
+    return /* None */0;
+  } else {
+    return /* Some */[match[0] | 0];
+  }
+}
+
+function float__from_json(x) {
+  var match = Js_json.classify(x);
+  if (typeof match === "number" || match.tag !== 1) {
+    return /* None */0;
+  } else {
+    return /* Some */[match[0]];
+  }
+}
+
+function list__from_json(convert, items) {
+  var match = Js_json.classify(items);
+  if (typeof match === "number") {
+    return /* None */0;
+  } else if (match.tag === 3) {
+    try {
+      var items$1 = $$Array.map((function (item) {
+              var match = Curry._1(convert, item);
+              if (match) {
+                return match[0];
+              } else {
+                return Pervasives.failwith("Item failed to parse");
+              }
+            }), match[0]);
+      return /* Some */[$$Array.to_list(items$1)];
+    }
+    catch (exn){
+      return /* None */0;
+    }
+  } else {
+    return /* None */0;
+  }
+}
+
+function string__from_json(value) {
+  var match = Js_json.classify(value);
+  if (typeof match === "number" || match.tag) {
+    return /* None */0;
+  } else {
+    return /* Some */[match[0]];
+  }
+}
+
+function array__from_json(convert, items) {
+  var match = Js_json.classify(items);
+  if (typeof match === "number") {
+    return /* None */0;
+  } else if (match.tag === 3) {
+    try {
+      var items$1 = $$Array.map((function (item) {
+              var match = Curry._1(convert, item);
+              if (match) {
+                return match[0];
+              } else {
+                return Pervasives.failwith("Item failed to parse");
+              }
+            }), match[0]);
+      return /* Some */[items$1];
+    }
+    catch (exn){
+      return /* None */0;
+    }
+  } else {
+    return /* None */0;
+  }
+}
+
+function bool__from_json(value) {
+  var match = Js_json.classify(value);
+  if (typeof match === "number") {
+    switch (match) {
+      case 0 : 
+          return /* Some */[/* false */0];
+      case 1 : 
+          return /* Some */[/* true */1];
+      case 2 : 
+          return /* None */0;
+      
+    }
+  } else {
+    return /* None */0;
+  }
+}
+
+function option__from_json(convert, value) {
+  var match = Js_json.classify(value);
+  if (typeof match === "number") {
+    if (match === 2) {
+      return /* Some */[/* None */0];
+    } else {
+      return /* None */0;
+    }
+  } else if (match.tag === 3) {
+    var match$1 = match[0];
+    if (match$1.length !== 1) {
+      return /* None */0;
+    } else {
+      var item = match$1[0];
+      var match$2 = Curry._1(convert, item);
+      if (match$2) {
+        return /* Some */[/* Some */[match$2[0]]];
+      } else {
+        return /* None */0;
+      }
+    }
+  } else {
+    return /* None */0;
+  }
+}
+
+function ref__to_devtools(convert, x) {
+  return {
+          $bs: "ref",
+          contents: Curry._1(convert, x)
+        };
+}
+
+function int__to_devtools(prim) {
+  return prim;
+}
+
+function float__to_devtools(prim) {
+  return prim;
+}
+
+function string__to_devtools(prim) {
+  return prim;
+}
+
+function bool__to_devtools(prim) {
+  return prim;
+}
+
+function list__to_devtools(convert, items) {
+  return {
+          $bs: "list",
+          items: $$Array.of_list(List.map(convert, items))
+        };
+}
+
+var array__to_devtools = $$Array.map;
+
+function option__to_devtools(convert, item) {
+  if (item) {
+    return {
+            $bs: "optional",
+            empty: /* false */0,
+            value: Curry._1(convert, item[0])
+          };
+  } else {
+    return {
+            $bs: "optional",
+            empty: /* true */1,
+            value: null
+          };
+  }
+}
+
+function self__to_json() {
+  return "Type is abstract and cannot be converted";
+}
+
+function self__from_json() {
+  return Pervasives.failwith("Type is abstract and cannot be converted");
+}
+
+function self__to_devtools() {
+  return WorkerTypes.string__to_devtools("Type is abstract and cannot be converted");
+}
+
+function workItem__to_json(value) {
+  var result = { };
+  result["request"] = WorkerTypes.request__to_json(value[/* request */0]);
+  result["state"] = Flame.state__to_json(value[/* state */1]);
+  return result;
+}
+
+function workItem__from_json(value) {
+  var match = Js_json.classify(value);
+  if (typeof match === "number") {
+    return /* None */0;
+  } else if (match.tag === 2) {
+    var value$1 = match[0];
+    var match$1 = value$1["request"];
+    if (match$1 !== undefined) {
+      var match$2 = WorkerTypes.request__from_json(match$1);
+      if (match$2) {
+        var match$3 = value$1["state"];
+        if (match$3 !== undefined) {
+          var match$4 = Flame.state__from_json(match$3);
+          if (match$4) {
+            return /* Some */[/* record */[
+                      /* request */match$2[0],
+                      /* state */match$4[0]
+                    ]];
+          } else {
+            return /* None */0;
+          }
+        } else {
+          return /* None */0;
+        }
+      } else {
+        return /* None */0;
+      }
+    } else {
+      return /* None */0;
+    }
+  } else {
+    return /* None */0;
+  }
+}
+
+function workItem__to_devtools(value) {
+  var result = { };
+  result["request"] = WorkerTypes.request__to_devtools(value[/* request */0]);
+  result["state"] = Flame.state__to_devtools(value[/* state */1]);
+  return {
+          $bs: "record",
+          type: "workItem",
+          attributes: result
+        };
+}
 
 var waiting = [/* [] */0];
 
@@ -3650,24 +5079,33 @@ var work = [/* [] */0];
 
 self.onmessage = (function (evt) {
     var match = evt.data;
-    var attractors = match[1];
-    if (attractors !== /* [] */0) {
+    if (match.tag) {
       var id = match[0];
-      var state = Flame.init(attractors, match[2]);
-      var filtered = List.filter((function (item) {
-                return +(item[/* id */0] !== id);
+      work[0] = List.filter((function (item) {
+                return +(item[/* request */0][/* id */0] !== id);
+              }))(work[0]);
+      waiting[0] = List.filter((function (item) {
+                return +(item[/* request */0][/* id */0] !== id);
               }))(waiting[0]);
-      waiting[0] = /* :: */[
-        /* record */[
-          /* id */id,
-          /* state */state,
-          /* max */match[3]
-        ],
-        filtered
-      ];
       return /* () */0;
     } else {
-      return 0;
+      var request = match[0];
+      if (request[/* attractors */1] !== /* [] */0) {
+        var state = Flame.init(request[/* attractors */1], request[/* size */2], request[/* transform */4]);
+        var filtered = List.filter((function (item) {
+                  return +(item[/* request */0][/* id */0] !== request[/* id */0]);
+                }))(waiting[0]);
+        waiting[0] = /* :: */[
+          /* record */[
+            /* request */request,
+            /* state */state
+          ],
+          filtered
+        ];
+        return /* () */0;
+      } else {
+        return 0;
+      }
     }
   });
 
@@ -3676,8 +5114,10 @@ function nextIterations(num) {
     return 10000;
   } else if (num < 1000000) {
     return 100000;
-  } else {
+  } else if (num < 10000000) {
     return 500000;
+  } else {
+    return 5000000;
   }
 }
 
@@ -3685,29 +5125,27 @@ function $$process() {
   var match = work[0];
   if (match) {
     var match$1 = match[0];
-    var max = match$1[/* max */2];
     var state = match$1[/* state */1];
-    var id = match$1[/* id */0];
+    var request = match$1[/* request */0];
     work[0] = match[1];
-    var current = state[/* iteration */4][0];
-    if (current < max) {
+    var current = state[/* iteration */5][0];
+    if (current < request[/* iterations */3]) {
       var next = nextIterations(current);
-      var match$2 = +((next + current | 0) > max);
-      var next$1 = match$2 !== 0 ? max - current | 0 : next;
+      var match$2 = +((next + current | 0) > request[/* iterations */3]);
+      var next$1 = match$2 !== 0 ? request[/* iterations */3] - current | 0 : next;
       Flame.flameStep(state, next$1);
-      var mmax = Flame.findMax(state[/* mx */5], state[/* size */0]);
+      var mmax = Flame.findMax(state[/* mx */6], state[/* size */0]);
       var imagedata = Curry._1(MyDom.make, state[/* size */0]);
-      Flame.renderToData(imagedata, state[/* size */0], state[/* mx */5], mmax);
+      Flame.renderToData(imagedata, state[/* size */0], state[/* mx */6], mmax);
       self.postMessage(/* Blit */[
-            id,
+            request[/* id */0],
             imagedata,
-            state[/* iteration */4][0]
+            state[/* iteration */5][0]
           ]);
       waiting[0] = /* :: */[
         /* record */[
-          /* id */id,
-          /* state */state,
-          /* max */max
+          /* request */request,
+          /* state */state
         ],
         waiting[0]
       ];
@@ -3732,10 +5170,40 @@ setInterval((function () {
         return /* () */0;
       }), 10);
 
-exports.waiting        = waiting;
-exports.work           = work;
-exports.nextIterations = nextIterations;
-exports.$$process      = $$process;
+exports.int__to_json          = int__to_json;
+exports.ref__to_json          = ref__to_json;
+exports.float__to_json        = float__to_json;
+exports.list__to_json         = list__to_json;
+exports.string__to_json       = string__to_json;
+exports.array__to_json        = array__to_json;
+exports.bool__to_json         = bool__to_json;
+exports.option__to_json       = option__to_json;
+exports.ref__from_json        = ref__from_json;
+exports.int__from_json        = int__from_json;
+exports.float__from_json      = float__from_json;
+exports.list__from_json       = list__from_json;
+exports.string__from_json     = string__from_json;
+exports.array__from_json      = array__from_json;
+exports.bool__from_json       = bool__from_json;
+exports.option__from_json     = option__from_json;
+exports.ref__to_devtools      = ref__to_devtools;
+exports.int__to_devtools      = int__to_devtools;
+exports.float__to_devtools    = float__to_devtools;
+exports.string__to_devtools   = string__to_devtools;
+exports.bool__to_devtools     = bool__to_devtools;
+exports.list__to_devtools     = list__to_devtools;
+exports.array__to_devtools    = array__to_devtools;
+exports.option__to_devtools   = option__to_devtools;
+exports.self__to_json         = self__to_json;
+exports.self__from_json       = self__from_json;
+exports.self__to_devtools     = self__to_devtools;
+exports.workItem__to_json     = workItem__to_json;
+exports.workItem__from_json   = workItem__from_json;
+exports.workItem__to_devtools = workItem__to_devtools;
+exports.waiting               = waiting;
+exports.work                  = work;
+exports.nextIterations        = nextIterations;
+exports.$$process             = $$process;
 /*  Not a pure module */
 
 
@@ -4438,6 +5906,727 @@ exports.at_exit             = at_exit;
 exports.valid_float_lexem   = valid_float_lexem;
 exports.unsafe_really_input = unsafe_really_input;
 exports.do_at_exit          = do_at_exit;
+/* No side effect */
+
+
+/***/ }),
+
+/***/ 266:
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+var Block = __webpack_require__(19);
+
+function reifyType(x) {
+  return /* tuple */[
+          typeof x === "string" ? /* String */0 : (
+              typeof x === "number" ? /* Number */1 : (
+                  typeof x === "boolean" ? /* Boolean */4 : (
+                      x === null ? /* Null */5 : (
+                          Array.isArray(x) ? /* Array */3 : /* Object */2
+                        )
+                    )
+                )
+            ),
+          x
+        ];
+}
+
+function classify(x) {
+  var ty = typeof x;
+  if (ty === "string") {
+    return /* JSONString */Block.__(0, [x]);
+  } else if (ty === "number") {
+    return /* JSONNumber */Block.__(1, [x]);
+  } else if (ty === "boolean") {
+    if (x === true) {
+      return /* JSONTrue */1;
+    } else {
+      return /* JSONFalse */0;
+    }
+  } else if (x === null) {
+    return /* JSONNull */2;
+  } else if (Array.isArray(x)) {
+    return /* JSONArray */Block.__(3, [x]);
+  } else {
+    return /* JSONObject */Block.__(2, [x]);
+  }
+}
+
+function test(x, v) {
+  switch (v) {
+    case 0 : 
+        return +(typeof x === "string");
+    case 1 : 
+        return +(typeof x === "number");
+    case 2 : 
+        if (x !== null && typeof x === "object") {
+          return 1 - +Array.isArray(x);
+        } else {
+          return /* false */0;
+        }
+    case 3 : 
+        return +Array.isArray(x);
+    case 4 : 
+        return +(typeof x === "boolean");
+    case 5 : 
+        return +(x === null);
+    
+  }
+}
+
+function decodeString(json) {
+  if (typeof json === "string") {
+    return /* Some */[json];
+  } else {
+    return /* None */0;
+  }
+}
+
+function decodeNumber(json) {
+  if (typeof json === "number") {
+    return /* Some */[json];
+  } else {
+    return /* None */0;
+  }
+}
+
+function decodeObject(json) {
+  if (typeof json === "object" && !Array.isArray(json) && json !== null) {
+    return /* Some */[json];
+  } else {
+    return /* None */0;
+  }
+}
+
+function decodeArray(json) {
+  if (Array.isArray(json)) {
+    return /* Some */[json];
+  } else {
+    return /* None */0;
+  }
+}
+
+function decodeBoolean(json) {
+  if (typeof json === "boolean") {
+    return /* Some */[json];
+  } else {
+    return /* None */0;
+  }
+}
+
+function decodeNull(json) {
+  if (json === null) {
+    return /* Some */[null];
+  } else {
+    return /* None */0;
+  }
+}
+
+exports.classify      = classify;
+exports.reifyType     = reifyType;
+exports.test          = test;
+exports.decodeString  = decodeString;
+exports.decodeNumber  = decodeNumber;
+exports.decodeObject  = decodeObject;
+exports.decodeArray   = decodeArray;
+exports.decodeBoolean = decodeBoolean;
+exports.decodeNull    = decodeNull;
+/* No side effect */
+
+
+/***/ }),
+
+/***/ 267:
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+
+function to_js_boolean(b) {
+  if (b) {
+    return true;
+  } else {
+    return false;
+  }
+}
+
+exports.to_js_boolean = to_js_boolean;
+/* No side effect */
+
+
+/***/ }),
+
+/***/ 273:
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+// Generated by BUCKLESCRIPT VERSION 1.9.1, PLEASE EDIT WITH CARE
+
+
+var List       = __webpack_require__(18);
+var $$Array    = __webpack_require__(43);
+var Block      = __webpack_require__(19);
+var Curry      = __webpack_require__(8);
+var Js_json    = __webpack_require__(266);
+var Library    = __webpack_require__(77);
+var Caml_obj   = __webpack_require__(33);
+var Caml_array = __webpack_require__(32);
+var Js_boolean = __webpack_require__(267);
+var Pervasives = __webpack_require__(25);
+
+function int__to_json(x) {
+  return x;
+}
+
+function ref__to_json(convert, x) {
+  return Curry._1(convert, x[0]);
+}
+
+function float__to_json(prim) {
+  return prim;
+}
+
+function list__to_json(convert, items) {
+  return $$Array.of_list(List.map(convert, items));
+}
+
+function string__to_json(prim) {
+  return prim;
+}
+
+var array__to_json = $$Array.map;
+
+var bool__to_json = Js_boolean.to_js_boolean;
+
+function option__to_json(convert, value) {
+  if (value) {
+    return /* array */[Curry._1(convert, value[0])];
+  } else {
+    return null;
+  }
+}
+
+function ref__from_json(convert, x) {
+  var match = Curry._1(convert, x);
+  if (match) {
+    return /* Some */[[match[0]]];
+  } else {
+    return /* None */0;
+  }
+}
+
+function int__from_json(x) {
+  var match = Js_json.classify(x);
+  if (typeof match === "number" || match.tag !== 1) {
+    return /* None */0;
+  } else {
+    return /* Some */[match[0] | 0];
+  }
+}
+
+function float__from_json(x) {
+  var match = Js_json.classify(x);
+  if (typeof match === "number" || match.tag !== 1) {
+    return /* None */0;
+  } else {
+    return /* Some */[match[0]];
+  }
+}
+
+function list__from_json(convert, items) {
+  var match = Js_json.classify(items);
+  if (typeof match === "number") {
+    return /* None */0;
+  } else if (match.tag === 3) {
+    try {
+      var items$1 = $$Array.map((function (item) {
+              var match = Curry._1(convert, item);
+              if (match) {
+                return match[0];
+              } else {
+                return Pervasives.failwith("Item failed to parse");
+              }
+            }), match[0]);
+      return /* Some */[$$Array.to_list(items$1)];
+    }
+    catch (exn){
+      return /* None */0;
+    }
+  } else {
+    return /* None */0;
+  }
+}
+
+function string__from_json(value) {
+  var match = Js_json.classify(value);
+  if (typeof match === "number" || match.tag) {
+    return /* None */0;
+  } else {
+    return /* Some */[match[0]];
+  }
+}
+
+function array__from_json(convert, items) {
+  var match = Js_json.classify(items);
+  if (typeof match === "number") {
+    return /* None */0;
+  } else if (match.tag === 3) {
+    try {
+      var items$1 = $$Array.map((function (item) {
+              var match = Curry._1(convert, item);
+              if (match) {
+                return match[0];
+              } else {
+                return Pervasives.failwith("Item failed to parse");
+              }
+            }), match[0]);
+      return /* Some */[items$1];
+    }
+    catch (exn){
+      return /* None */0;
+    }
+  } else {
+    return /* None */0;
+  }
+}
+
+function bool__from_json(value) {
+  var match = Js_json.classify(value);
+  if (typeof match === "number") {
+    switch (match) {
+      case 0 : 
+          return /* Some */[/* false */0];
+      case 1 : 
+          return /* Some */[/* true */1];
+      case 2 : 
+          return /* None */0;
+      
+    }
+  } else {
+    return /* None */0;
+  }
+}
+
+function option__from_json(convert, value) {
+  var match = Js_json.classify(value);
+  if (typeof match === "number") {
+    if (match === 2) {
+      return /* Some */[/* None */0];
+    } else {
+      return /* None */0;
+    }
+  } else if (match.tag === 3) {
+    var match$1 = match[0];
+    if (match$1.length !== 1) {
+      return /* None */0;
+    } else {
+      var item = match$1[0];
+      var match$2 = Curry._1(convert, item);
+      if (match$2) {
+        return /* Some */[/* Some */[match$2[0]]];
+      } else {
+        return /* None */0;
+      }
+    }
+  } else {
+    return /* None */0;
+  }
+}
+
+function ref__to_devtools(convert, x) {
+  return {
+          $bs: "ref",
+          contents: Curry._1(convert, x)
+        };
+}
+
+function int__to_devtools(prim) {
+  return prim;
+}
+
+function float__to_devtools(prim) {
+  return prim;
+}
+
+function string__to_devtools(prim) {
+  return prim;
+}
+
+function bool__to_devtools(prim) {
+  return prim;
+}
+
+function list__to_devtools(convert, items) {
+  return {
+          $bs: "list",
+          items: $$Array.of_list(List.map(convert, items))
+        };
+}
+
+var array__to_devtools = $$Array.map;
+
+function option__to_devtools(convert, item) {
+  if (item) {
+    return {
+            $bs: "optional",
+            empty: /* false */0,
+            value: Curry._1(convert, item[0])
+          };
+  } else {
+    return {
+            $bs: "optional",
+            empty: /* true */1,
+            value: null
+          };
+  }
+}
+
+function request__to_json(value) {
+  var result = { };
+  result["id"] = value[/* id */0];
+  result["attractors"] = $$Array.of_list(List.map((function (param) {
+              return /* array */[
+                      param[0],
+                      Library.transform__to_json(param[1])
+                    ];
+            }), value[/* attractors */1]));
+  result["size"] = value[/* size */2];
+  result["iterations"] = value[/* iterations */3];
+  result["transform"] = option__to_json((function (param) {
+          var arg1 = param[1];
+          var arg0 = param[0];
+          return /* array */[
+                  /* array */[
+                    arg0[0],
+                    arg0[1],
+                    arg0[2]
+                  ],
+                  /* array */[
+                    arg1[0],
+                    arg1[1],
+                    arg1[2]
+                  ]
+                ];
+        }), value[/* transform */4]);
+  return result;
+}
+
+function request__from_json(value) {
+  var match = Js_json.classify(value);
+  if (typeof match === "number") {
+    return /* None */0;
+  } else if (match.tag === 2) {
+    var value$1 = match[0];
+    var match$1 = value$1["id"];
+    if (match$1 !== undefined) {
+      var match$2 = string__from_json(match$1);
+      if (match$2) {
+        var match$3 = value$1["attractors"];
+        if (match$3 !== undefined) {
+          var match$4 = list__from_json((function (value) {
+                  var match = Js_json.classify(value);
+                  if (typeof match === "number") {
+                    return /* None */0;
+                  } else if (match.tag === 3) {
+                    var match$1 = match[0];
+                    if (match$1.length !== 2) {
+                      return /* None */0;
+                    } else {
+                      var arg0 = match$1[0];
+                      var arg1 = match$1[1];
+                      var match$2 = int__from_json(arg0);
+                      if (match$2) {
+                        var match$3 = Library.transform__from_json(arg1);
+                        if (match$3) {
+                          return /* Some */[/* tuple */[
+                                    match$2[0],
+                                    match$3[0]
+                                  ]];
+                        } else {
+                          return /* None */0;
+                        }
+                      } else {
+                        return /* None */0;
+                      }
+                    }
+                  } else {
+                    return /* None */0;
+                  }
+                }), match$3);
+          if (match$4) {
+            var match$5 = value$1["size"];
+            if (match$5 !== undefined) {
+              var match$6 = int__from_json(match$5);
+              if (match$6) {
+                var match$7 = value$1["iterations"];
+                if (match$7 !== undefined) {
+                  var match$8 = int__from_json(match$7);
+                  if (match$8) {
+                    var match$9 = value$1["transform"];
+                    if (match$9 !== undefined) {
+                      var match$10 = option__from_json((function (value) {
+                              var match = Js_json.classify(value);
+                              if (typeof match === "number") {
+                                return /* None */0;
+                              } else if (match.tag === 3) {
+                                var match$1 = match[0];
+                                if (match$1.length !== 2) {
+                                  return /* None */0;
+                                } else {
+                                  var arg0 = match$1[0];
+                                  var arg1 = match$1[1];
+                                  var match$2 = Js_json.classify(arg0);
+                                  var match$3;
+                                  if (typeof match$2 === "number") {
+                                    match$3 = /* None */0;
+                                  } else if (match$2.tag === 3) {
+                                    var match$4 = match$2[0];
+                                    if (match$4.length !== 3) {
+                                      match$3 = /* None */0;
+                                    } else {
+                                      var arg0$1 = match$4[0];
+                                      var arg1$1 = match$4[1];
+                                      var arg2 = match$4[2];
+                                      var match$5 = float__from_json(arg0$1);
+                                      if (match$5) {
+                                        var match$6 = float__from_json(arg1$1);
+                                        if (match$6) {
+                                          var match$7 = float__from_json(arg2);
+                                          match$3 = match$7 ? /* Some */[/* tuple */[
+                                                match$5[0],
+                                                match$6[0],
+                                                match$7[0]
+                                              ]] : /* None */0;
+                                        } else {
+                                          match$3 = /* None */0;
+                                        }
+                                      } else {
+                                        match$3 = /* None */0;
+                                      }
+                                    }
+                                  } else {
+                                    match$3 = /* None */0;
+                                  }
+                                  if (match$3) {
+                                    var match$8 = Js_json.classify(arg1);
+                                    var match$9;
+                                    if (typeof match$8 === "number") {
+                                      match$9 = /* None */0;
+                                    } else if (match$8.tag === 3) {
+                                      var match$10 = match$8[0];
+                                      if (match$10.length !== 3) {
+                                        match$9 = /* None */0;
+                                      } else {
+                                        var arg0$2 = match$10[0];
+                                        var arg1$2 = match$10[1];
+                                        var arg2$1 = match$10[2];
+                                        var match$11 = float__from_json(arg0$2);
+                                        if (match$11) {
+                                          var match$12 = float__from_json(arg1$2);
+                                          if (match$12) {
+                                            var match$13 = float__from_json(arg2$1);
+                                            match$9 = match$13 ? /* Some */[/* tuple */[
+                                                  match$11[0],
+                                                  match$12[0],
+                                                  match$13[0]
+                                                ]] : /* None */0;
+                                          } else {
+                                            match$9 = /* None */0;
+                                          }
+                                        } else {
+                                          match$9 = /* None */0;
+                                        }
+                                      }
+                                    } else {
+                                      match$9 = /* None */0;
+                                    }
+                                    if (match$9) {
+                                      return /* Some */[/* tuple */[
+                                                match$3[0],
+                                                match$9[0]
+                                              ]];
+                                    } else {
+                                      return /* None */0;
+                                    }
+                                  } else {
+                                    return /* None */0;
+                                  }
+                                }
+                              } else {
+                                return /* None */0;
+                              }
+                            }), match$9);
+                      if (match$10) {
+                        return /* Some */[/* record */[
+                                  /* id */match$2[0],
+                                  /* attractors */match$4[0],
+                                  /* size */match$6[0],
+                                  /* iterations */match$8[0],
+                                  /* transform */match$10[0]
+                                ]];
+                      } else {
+                        return /* None */0;
+                      }
+                    } else {
+                      return /* None */0;
+                    }
+                  } else {
+                    return /* None */0;
+                  }
+                } else {
+                  return /* None */0;
+                }
+              } else {
+                return /* None */0;
+              }
+            } else {
+              return /* None */0;
+            }
+          } else {
+            return /* None */0;
+          }
+        } else {
+          return /* None */0;
+        }
+      } else {
+        return /* None */0;
+      }
+    } else {
+      return /* None */0;
+    }
+  } else {
+    return /* None */0;
+  }
+}
+
+function request__to_devtools(value) {
+  var result = { };
+  result["id"] = value[/* id */0];
+  result["attractors"] = list__to_devtools((function () {
+          return Pervasives.failwith("tuple not supported");
+        }), value[/* attractors */1]);
+  result["size"] = value[/* size */2];
+  result["iterations"] = value[/* iterations */3];
+  result["transform"] = option__to_devtools((function () {
+          return Pervasives.failwith("tuple not supported");
+        }), value[/* transform */4]);
+  return {
+          $bs: "record",
+          type: "request",
+          attributes: result
+        };
+}
+
+function message__to_json(value) {
+  if (value.tag) {
+    return /* array */[
+            "Stop",
+            value[0]
+          ];
+  } else {
+    return /* array */[
+            "Render",
+            request__to_json(value[0])
+          ];
+  }
+}
+
+function message__from_json(value) {
+  var match = Js_json.classify(value);
+  if (typeof match === "number") {
+    return /* None */0;
+  } else if (match.tag === 3) {
+    var arr = match[0];
+    if (Caml_obj.caml_equal(Js_json.classify(Caml_array.caml_array_get(arr, 0)), /* JSONString */Block.__(0, ["Render"]))) {
+      if (arr.length !== 2) {
+        return /* None */0;
+      } else {
+        var arg0 = arr[1];
+        var match$1 = request__from_json(arg0);
+        if (match$1) {
+          return /* Some */[/* Render */Block.__(0, [match$1[0]])];
+        } else {
+          return /* None */0;
+        }
+      }
+    } else if (Caml_obj.caml_equal(Js_json.classify(Caml_array.caml_array_get(arr, 0)), /* JSONString */Block.__(0, ["Stop"]))) {
+      if (arr.length !== 2) {
+        return /* None */0;
+      } else {
+        var arg0$1 = arr[1];
+        var match$2 = string__from_json(arg0$1);
+        if (match$2) {
+          return /* Some */[/* Stop */Block.__(1, [match$2[0]])];
+        } else {
+          return /* None */0;
+        }
+      }
+    } else {
+      return /* None */0;
+    }
+  } else {
+    return /* None */0;
+  }
+}
+
+function message__to_devtools(value) {
+  if (value.tag) {
+    return {
+            $bs: "variant",
+            type: "message",
+            constructor: "Stop",
+            arguments: $$Array.of_list(/* :: */[
+                  value[0],
+                  /* [] */0
+                ])
+          };
+  } else {
+    return {
+            $bs: "variant",
+            type: "message",
+            constructor: "Render",
+            arguments: $$Array.of_list(/* :: */[
+                  request__to_devtools(value[0]),
+                  /* [] */0
+                ])
+          };
+  }
+}
+
+exports.int__to_json         = int__to_json;
+exports.ref__to_json         = ref__to_json;
+exports.float__to_json       = float__to_json;
+exports.list__to_json        = list__to_json;
+exports.string__to_json      = string__to_json;
+exports.array__to_json       = array__to_json;
+exports.bool__to_json        = bool__to_json;
+exports.option__to_json      = option__to_json;
+exports.ref__from_json       = ref__from_json;
+exports.int__from_json       = int__from_json;
+exports.float__from_json     = float__from_json;
+exports.list__from_json      = list__from_json;
+exports.string__from_json    = string__from_json;
+exports.array__from_json     = array__from_json;
+exports.bool__from_json      = bool__from_json;
+exports.option__from_json    = option__from_json;
+exports.ref__to_devtools     = ref__to_devtools;
+exports.int__to_devtools     = int__to_devtools;
+exports.float__to_devtools   = float__to_devtools;
+exports.string__to_devtools  = string__to_devtools;
+exports.bool__to_devtools    = bool__to_devtools;
+exports.list__to_devtools    = list__to_devtools;
+exports.array__to_devtools   = array__to_devtools;
+exports.option__to_devtools  = option__to_devtools;
+exports.request__to_json     = request__to_json;
+exports.request__from_json   = request__from_json;
+exports.request__to_devtools = request__to_devtools;
+exports.message__to_json     = message__to_json;
+exports.message__from_json   = message__from_json;
+exports.message__to_devtools = message__to_devtools;
 /* No side effect */
 
 
@@ -6385,8 +8574,394 @@ exports.undefined_recursive_module = undefined_recursive_module;
 // Generated by BUCKLESCRIPT VERSION 1.9.1, PLEASE EDIT WITH CARE
 
 
-var Curry    = __webpack_require__(8);
-var Caml_obj = __webpack_require__(33);
+var List       = __webpack_require__(18);
+var $$Array    = __webpack_require__(43);
+var Block      = __webpack_require__(19);
+var Curry      = __webpack_require__(8);
+var Js_json    = __webpack_require__(266);
+var Caml_obj   = __webpack_require__(33);
+var Caml_array = __webpack_require__(32);
+var Js_boolean = __webpack_require__(267);
+var Pervasives = __webpack_require__(25);
+
+function int__to_json(x) {
+  return x;
+}
+
+function ref__to_json(convert, x) {
+  return Curry._1(convert, x[0]);
+}
+
+function float__to_json(prim) {
+  return prim;
+}
+
+function list__to_json(convert, items) {
+  return $$Array.of_list(List.map(convert, items));
+}
+
+function string__to_json(prim) {
+  return prim;
+}
+
+var array__to_json = $$Array.map;
+
+var bool__to_json = Js_boolean.to_js_boolean;
+
+function option__to_json(convert, value) {
+  if (value) {
+    return /* array */[Curry._1(convert, value[0])];
+  } else {
+    return null;
+  }
+}
+
+function ref__from_json(convert, x) {
+  var match = Curry._1(convert, x);
+  if (match) {
+    return /* Some */[[match[0]]];
+  } else {
+    return /* None */0;
+  }
+}
+
+function int__from_json(x) {
+  var match = Js_json.classify(x);
+  if (typeof match === "number" || match.tag !== 1) {
+    return /* None */0;
+  } else {
+    return /* Some */[match[0] | 0];
+  }
+}
+
+function float__from_json(x) {
+  var match = Js_json.classify(x);
+  if (typeof match === "number" || match.tag !== 1) {
+    return /* None */0;
+  } else {
+    return /* Some */[match[0]];
+  }
+}
+
+function list__from_json(convert, items) {
+  var match = Js_json.classify(items);
+  if (typeof match === "number") {
+    return /* None */0;
+  } else if (match.tag === 3) {
+    try {
+      var items$1 = $$Array.map((function (item) {
+              var match = Curry._1(convert, item);
+              if (match) {
+                return match[0];
+              } else {
+                return Pervasives.failwith("Item failed to parse");
+              }
+            }), match[0]);
+      return /* Some */[$$Array.to_list(items$1)];
+    }
+    catch (exn){
+      return /* None */0;
+    }
+  } else {
+    return /* None */0;
+  }
+}
+
+function string__from_json(value) {
+  var match = Js_json.classify(value);
+  if (typeof match === "number" || match.tag) {
+    return /* None */0;
+  } else {
+    return /* Some */[match[0]];
+  }
+}
+
+function array__from_json(convert, items) {
+  var match = Js_json.classify(items);
+  if (typeof match === "number") {
+    return /* None */0;
+  } else if (match.tag === 3) {
+    try {
+      var items$1 = $$Array.map((function (item) {
+              var match = Curry._1(convert, item);
+              if (match) {
+                return match[0];
+              } else {
+                return Pervasives.failwith("Item failed to parse");
+              }
+            }), match[0]);
+      return /* Some */[items$1];
+    }
+    catch (exn){
+      return /* None */0;
+    }
+  } else {
+    return /* None */0;
+  }
+}
+
+function bool__from_json(value) {
+  var match = Js_json.classify(value);
+  if (typeof match === "number") {
+    switch (match) {
+      case 0 : 
+          return /* Some */[/* false */0];
+      case 1 : 
+          return /* Some */[/* true */1];
+      case 2 : 
+          return /* None */0;
+      
+    }
+  } else {
+    return /* None */0;
+  }
+}
+
+function option__from_json(convert, value) {
+  var match = Js_json.classify(value);
+  if (typeof match === "number") {
+    if (match === 2) {
+      return /* Some */[/* None */0];
+    } else {
+      return /* None */0;
+    }
+  } else if (match.tag === 3) {
+    var match$1 = match[0];
+    if (match$1.length !== 1) {
+      return /* None */0;
+    } else {
+      var item = match$1[0];
+      var match$2 = Curry._1(convert, item);
+      if (match$2) {
+        return /* Some */[/* Some */[match$2[0]]];
+      } else {
+        return /* None */0;
+      }
+    }
+  } else {
+    return /* None */0;
+  }
+}
+
+function ref__to_devtools(convert, x) {
+  return {
+          $bs: "ref",
+          contents: Curry._1(convert, x)
+        };
+}
+
+function int__to_devtools(prim) {
+  return prim;
+}
+
+function float__to_devtools(prim) {
+  return prim;
+}
+
+function string__to_devtools(prim) {
+  return prim;
+}
+
+function bool__to_devtools(prim) {
+  return prim;
+}
+
+function list__to_devtools(convert, items) {
+  return {
+          $bs: "list",
+          items: $$Array.of_list(List.map(convert, items))
+        };
+}
+
+var array__to_devtools = $$Array.map;
+
+function option__to_devtools(convert, item) {
+  if (item) {
+    return {
+            $bs: "optional",
+            empty: /* false */0,
+            value: Curry._1(convert, item[0])
+          };
+  } else {
+    return {
+            $bs: "optional",
+            empty: /* true */1,
+            value: null
+          };
+  }
+}
+
+function fn__to_json() {
+  return Pervasives.failwith("Unexpected core type, cannot convert");
+}
+
+function fn__from_json() {
+  return Pervasives.failwith("Unexpected core type, cannot convert");
+}
+
+function fn__to_devtools() {
+  return Pervasives.failwith("Unexpected core type, cannot convert");
+}
+
+function p1__to_json(value) {
+  return value;
+}
+
+var p1__from_json = float__from_json;
+
+function p1__to_devtools(value) {
+  return value;
+}
+
+function p2__to_json(value) {
+  return /* array */[
+          value[0],
+          value[1]
+        ];
+}
+
+function p2__from_json(value) {
+  var match = Js_json.classify(value);
+  if (typeof match === "number") {
+    return /* None */0;
+  } else if (match.tag === 3) {
+    var match$1 = match[0];
+    if (match$1.length !== 2) {
+      return /* None */0;
+    } else {
+      var arg0 = match$1[0];
+      var arg1 = match$1[1];
+      var match$2 = float__from_json(arg0);
+      if (match$2) {
+        var match$3 = float__from_json(arg1);
+        if (match$3) {
+          return /* Some */[/* tuple */[
+                    match$2[0],
+                    match$3[0]
+                  ]];
+        } else {
+          return /* None */0;
+        }
+      } else {
+        return /* None */0;
+      }
+    }
+  } else {
+    return /* None */0;
+  }
+}
+
+function p2__to_devtools() {
+  return Pervasives.failwith("tuple not supported");
+}
+
+function p3__to_json(value) {
+  return /* array */[
+          value[0],
+          value[1],
+          value[2]
+        ];
+}
+
+function p3__from_json(value) {
+  var match = Js_json.classify(value);
+  if (typeof match === "number") {
+    return /* None */0;
+  } else if (match.tag === 3) {
+    var match$1 = match[0];
+    if (match$1.length !== 3) {
+      return /* None */0;
+    } else {
+      var arg0 = match$1[0];
+      var arg1 = match$1[1];
+      var arg2 = match$1[2];
+      var match$2 = float__from_json(arg0);
+      if (match$2) {
+        var match$3 = float__from_json(arg1);
+        if (match$3) {
+          var match$4 = float__from_json(arg2);
+          if (match$4) {
+            return /* Some */[/* tuple */[
+                      match$2[0],
+                      match$3[0],
+                      match$4[0]
+                    ]];
+          } else {
+            return /* None */0;
+          }
+        } else {
+          return /* None */0;
+        }
+      } else {
+        return /* None */0;
+      }
+    }
+  } else {
+    return /* None */0;
+  }
+}
+
+function p3__to_devtools() {
+  return Pervasives.failwith("tuple not supported");
+}
+
+function p4__to_json(value) {
+  return /* array */[
+          value[0],
+          value[1],
+          value[2],
+          value[3]
+        ];
+}
+
+function p4__from_json(value) {
+  var match = Js_json.classify(value);
+  if (typeof match === "number") {
+    return /* None */0;
+  } else if (match.tag === 3) {
+    var match$1 = match[0];
+    if (match$1.length !== 4) {
+      return /* None */0;
+    } else {
+      var arg0 = match$1[0];
+      var arg1 = match$1[1];
+      var arg2 = match$1[2];
+      var arg3 = match$1[3];
+      var match$2 = float__from_json(arg0);
+      if (match$2) {
+        var match$3 = float__from_json(arg1);
+        if (match$3) {
+          var match$4 = float__from_json(arg2);
+          if (match$4) {
+            var match$5 = float__from_json(arg3);
+            if (match$5) {
+              return /* Some */[/* tuple */[
+                        match$2[0],
+                        match$3[0],
+                        match$4[0],
+                        match$5[0]
+                      ]];
+            } else {
+              return /* None */0;
+            }
+          } else {
+            return /* None */0;
+          }
+        } else {
+          return /* None */0;
+        }
+      } else {
+        return /* None */0;
+      }
+    }
+  } else {
+    return /* None */0;
+  }
+}
+
+function p4__to_devtools() {
+  return Pervasives.failwith("tuple not supported");
+}
 
 function sinusoidal(param, param$1) {
   return /* tuple */[
@@ -6610,6 +9185,547 @@ function identity(param) {
         ];
 }
 
+function attractor__to_json(value) {
+  if (typeof value === "number") {
+    switch (value) {
+      case 0 : 
+          return "Spherical";
+      case 1 : 
+          return "Column";
+      case 2 : 
+          return "Row";
+      case 3 : 
+          return "FoldUp";
+      case 4 : 
+          return "FoldDown";
+      case 5 : 
+          return "FoldLeft";
+      case 6 : 
+          return "FoldRight";
+      case 7 : 
+          return "Identity";
+      
+    }
+  } else {
+    switch (value.tag | 0) {
+      case 0 : 
+          return /* array */[
+                  "Sinusoidal",
+                  p2__to_json(value[0])
+                ];
+      case 1 : 
+          return /* array */[
+                  "Swirl",
+                  p4__to_json(value[0])
+                ];
+      case 2 : 
+          return /* array */[
+                  "Horseshoe",
+                  p4__to_json(value[0])
+                ];
+      case 3 : 
+          return /* array */[
+                  "Disc",
+                  p2__to_json(value[0])
+                ];
+      case 4 : 
+          return /* array */[
+                  "Disc2",
+                  p2__to_json(value[0])
+                ];
+      case 5 : 
+          return /* array */[
+                  "Handkercheif",
+                  p2__to_json(value[0])
+                ];
+      case 6 : 
+          return /* array */[
+                  "Hyperbolic",
+                  p2__to_json(value[0])
+                ];
+      case 7 : 
+          return /* array */[
+                  "Diamond",
+                  p4__to_json(value[0])
+                ];
+      case 8 : 
+          return /* array */[
+                  "Ex",
+                  p2__to_json(value[0])
+                ];
+      case 9 : 
+          return /* array */[
+                  "Waves",
+                  p4__to_json(value[0])
+                ];
+      case 10 : 
+          return /* array */[
+                  "CosWaves",
+                  p4__to_json(value[0])
+                ];
+      case 11 : 
+          return /* array */[
+                  "Fisheye",
+                  value[0]
+                ];
+      case 12 : 
+          return /* array */[
+                  "Fisheye2",
+                  value[0]
+                ];
+      case 13 : 
+          return /* array */[
+                  "Popcorn",
+                  p4__to_json(value[0])
+                ];
+      case 14 : 
+          return /* array */[
+                  "Tangent",
+                  p3__to_json(value[0])
+                ];
+      
+    }
+  }
+}
+
+function attractor__from_json(value) {
+  var match = Js_json.classify(value);
+  if (typeof match === "number") {
+    return /* None */0;
+  } else {
+    switch (match.tag | 0) {
+      case 0 : 
+          switch (match[0]) {
+            case "Column" : 
+                return /* Some */[/* Column */1];
+            case "FoldDown" : 
+                return /* Some */[/* FoldDown */4];
+            case "FoldLeft" : 
+                return /* Some */[/* FoldLeft */5];
+            case "FoldRight" : 
+                return /* Some */[/* FoldRight */6];
+            case "FoldUp" : 
+                return /* Some */[/* FoldUp */3];
+            case "Identity" : 
+                return /* Some */[/* Identity */7];
+            case "Row" : 
+                return /* Some */[/* Row */2];
+            case "Spherical" : 
+                return /* Some */[/* Spherical */0];
+            default:
+              return /* None */0;
+          }
+          break;
+      case 3 : 
+          var arr = match[0];
+          if (Caml_obj.caml_equal(Js_json.classify(Caml_array.caml_array_get(arr, 0)), /* JSONString */Block.__(0, ["Sinusoidal"]))) {
+            if (arr.length !== 2) {
+              return /* None */0;
+            } else {
+              var arg0 = arr[1];
+              var match$1 = p2__from_json(arg0);
+              if (match$1) {
+                return /* Some */[/* Sinusoidal */Block.__(0, [match$1[0]])];
+              } else {
+                return /* None */0;
+              }
+            }
+          } else if (Caml_obj.caml_equal(Js_json.classify(Caml_array.caml_array_get(arr, 0)), /* JSONString */Block.__(0, ["Swirl"]))) {
+            if (arr.length !== 2) {
+              return /* None */0;
+            } else {
+              var arg0$1 = arr[1];
+              var match$2 = p4__from_json(arg0$1);
+              if (match$2) {
+                return /* Some */[/* Swirl */Block.__(1, [match$2[0]])];
+              } else {
+                return /* None */0;
+              }
+            }
+          } else if (Caml_obj.caml_equal(Js_json.classify(Caml_array.caml_array_get(arr, 0)), /* JSONString */Block.__(0, ["Horseshoe"]))) {
+            if (arr.length !== 2) {
+              return /* None */0;
+            } else {
+              var arg0$2 = arr[1];
+              var match$3 = p4__from_json(arg0$2);
+              if (match$3) {
+                return /* Some */[/* Horseshoe */Block.__(2, [match$3[0]])];
+              } else {
+                return /* None */0;
+              }
+            }
+          } else if (Caml_obj.caml_equal(Js_json.classify(Caml_array.caml_array_get(arr, 0)), /* JSONString */Block.__(0, ["Disc"]))) {
+            if (arr.length !== 2) {
+              return /* None */0;
+            } else {
+              var arg0$3 = arr[1];
+              var match$4 = p2__from_json(arg0$3);
+              if (match$4) {
+                return /* Some */[/* Disc */Block.__(3, [match$4[0]])];
+              } else {
+                return /* None */0;
+              }
+            }
+          } else if (Caml_obj.caml_equal(Js_json.classify(Caml_array.caml_array_get(arr, 0)), /* JSONString */Block.__(0, ["Disc2"]))) {
+            if (arr.length !== 2) {
+              return /* None */0;
+            } else {
+              var arg0$4 = arr[1];
+              var match$5 = p2__from_json(arg0$4);
+              if (match$5) {
+                return /* Some */[/* Disc2 */Block.__(4, [match$5[0]])];
+              } else {
+                return /* None */0;
+              }
+            }
+          } else if (Caml_obj.caml_equal(Js_json.classify(Caml_array.caml_array_get(arr, 0)), /* JSONString */Block.__(0, ["Handkercheif"]))) {
+            if (arr.length !== 2) {
+              return /* None */0;
+            } else {
+              var arg0$5 = arr[1];
+              var match$6 = p2__from_json(arg0$5);
+              if (match$6) {
+                return /* Some */[/* Handkercheif */Block.__(5, [match$6[0]])];
+              } else {
+                return /* None */0;
+              }
+            }
+          } else if (Caml_obj.caml_equal(Js_json.classify(Caml_array.caml_array_get(arr, 0)), /* JSONString */Block.__(0, ["Hyperbolic"]))) {
+            if (arr.length !== 2) {
+              return /* None */0;
+            } else {
+              var arg0$6 = arr[1];
+              var match$7 = p2__from_json(arg0$6);
+              if (match$7) {
+                return /* Some */[/* Hyperbolic */Block.__(6, [match$7[0]])];
+              } else {
+                return /* None */0;
+              }
+            }
+          } else if (Caml_obj.caml_equal(Js_json.classify(Caml_array.caml_array_get(arr, 0)), /* JSONString */Block.__(0, ["Diamond"]))) {
+            if (arr.length !== 2) {
+              return /* None */0;
+            } else {
+              var arg0$7 = arr[1];
+              var match$8 = p4__from_json(arg0$7);
+              if (match$8) {
+                return /* Some */[/* Diamond */Block.__(7, [match$8[0]])];
+              } else {
+                return /* None */0;
+              }
+            }
+          } else if (Caml_obj.caml_equal(Js_json.classify(Caml_array.caml_array_get(arr, 0)), /* JSONString */Block.__(0, ["Ex"]))) {
+            if (arr.length !== 2) {
+              return /* None */0;
+            } else {
+              var arg0$8 = arr[1];
+              var match$9 = p2__from_json(arg0$8);
+              if (match$9) {
+                return /* Some */[/* Ex */Block.__(8, [match$9[0]])];
+              } else {
+                return /* None */0;
+              }
+            }
+          } else if (Caml_obj.caml_equal(Js_json.classify(Caml_array.caml_array_get(arr, 0)), /* JSONString */Block.__(0, ["Waves"]))) {
+            if (arr.length !== 2) {
+              return /* None */0;
+            } else {
+              var arg0$9 = arr[1];
+              var match$10 = p4__from_json(arg0$9);
+              if (match$10) {
+                return /* Some */[/* Waves */Block.__(9, [match$10[0]])];
+              } else {
+                return /* None */0;
+              }
+            }
+          } else if (Caml_obj.caml_equal(Js_json.classify(Caml_array.caml_array_get(arr, 0)), /* JSONString */Block.__(0, ["CosWaves"]))) {
+            if (arr.length !== 2) {
+              return /* None */0;
+            } else {
+              var arg0$10 = arr[1];
+              var match$11 = p4__from_json(arg0$10);
+              if (match$11) {
+                return /* Some */[/* CosWaves */Block.__(10, [match$11[0]])];
+              } else {
+                return /* None */0;
+              }
+            }
+          } else if (Caml_obj.caml_equal(Js_json.classify(Caml_array.caml_array_get(arr, 0)), /* JSONString */Block.__(0, ["Fisheye"]))) {
+            if (arr.length !== 2) {
+              return /* None */0;
+            } else {
+              var arg0$11 = arr[1];
+              var match$12 = float__from_json(arg0$11);
+              if (match$12) {
+                return /* Some */[/* Fisheye */Block.__(11, [match$12[0]])];
+              } else {
+                return /* None */0;
+              }
+            }
+          } else if (Caml_obj.caml_equal(Js_json.classify(Caml_array.caml_array_get(arr, 0)), /* JSONString */Block.__(0, ["Fisheye2"]))) {
+            if (arr.length !== 2) {
+              return /* None */0;
+            } else {
+              var arg0$12 = arr[1];
+              var match$13 = float__from_json(arg0$12);
+              if (match$13) {
+                return /* Some */[/* Fisheye2 */Block.__(12, [match$13[0]])];
+              } else {
+                return /* None */0;
+              }
+            }
+          } else if (Caml_obj.caml_equal(Js_json.classify(Caml_array.caml_array_get(arr, 0)), /* JSONString */Block.__(0, ["Popcorn"]))) {
+            if (arr.length !== 2) {
+              return /* None */0;
+            } else {
+              var arg0$13 = arr[1];
+              var match$14 = p4__from_json(arg0$13);
+              if (match$14) {
+                return /* Some */[/* Popcorn */Block.__(13, [match$14[0]])];
+              } else {
+                return /* None */0;
+              }
+            }
+          } else if (Caml_obj.caml_equal(Js_json.classify(Caml_array.caml_array_get(arr, 0)), /* JSONString */Block.__(0, ["Tangent"]))) {
+            if (arr.length !== 2) {
+              return /* None */0;
+            } else {
+              var arg0$14 = arr[1];
+              var match$15 = p3__from_json(arg0$14);
+              if (match$15) {
+                return /* Some */[/* Tangent */Block.__(14, [match$15[0]])];
+              } else {
+                return /* None */0;
+              }
+            }
+          } else {
+            return /* None */0;
+          }
+          break;
+      default:
+        return /* None */0;
+    }
+  }
+}
+
+function attractor__to_devtools(value) {
+  if (typeof value === "number") {
+    switch (value) {
+      case 0 : 
+          return {
+                  $bs: "variant",
+                  type: "attractor",
+                  constructor: "Spherical",
+                  arguments: /* array */[]
+                };
+      case 1 : 
+          return {
+                  $bs: "variant",
+                  type: "attractor",
+                  constructor: "Column",
+                  arguments: /* array */[]
+                };
+      case 2 : 
+          return {
+                  $bs: "variant",
+                  type: "attractor",
+                  constructor: "Row",
+                  arguments: /* array */[]
+                };
+      case 3 : 
+          return {
+                  $bs: "variant",
+                  type: "attractor",
+                  constructor: "FoldUp",
+                  arguments: /* array */[]
+                };
+      case 4 : 
+          return {
+                  $bs: "variant",
+                  type: "attractor",
+                  constructor: "FoldDown",
+                  arguments: /* array */[]
+                };
+      case 5 : 
+          return {
+                  $bs: "variant",
+                  type: "attractor",
+                  constructor: "FoldLeft",
+                  arguments: /* array */[]
+                };
+      case 6 : 
+          return {
+                  $bs: "variant",
+                  type: "attractor",
+                  constructor: "FoldRight",
+                  arguments: /* array */[]
+                };
+      case 7 : 
+          return {
+                  $bs: "variant",
+                  type: "attractor",
+                  constructor: "Identity",
+                  arguments: /* array */[]
+                };
+      
+    }
+  } else {
+    switch (value.tag | 0) {
+      case 0 : 
+          return {
+                  $bs: "variant",
+                  type: "attractor",
+                  constructor: "Sinusoidal",
+                  arguments: $$Array.of_list(/* :: */[
+                        Pervasives.failwith("tuple not supported"),
+                        /* [] */0
+                      ])
+                };
+      case 1 : 
+          return {
+                  $bs: "variant",
+                  type: "attractor",
+                  constructor: "Swirl",
+                  arguments: $$Array.of_list(/* :: */[
+                        Pervasives.failwith("tuple not supported"),
+                        /* [] */0
+                      ])
+                };
+      case 2 : 
+          return {
+                  $bs: "variant",
+                  type: "attractor",
+                  constructor: "Horseshoe",
+                  arguments: $$Array.of_list(/* :: */[
+                        Pervasives.failwith("tuple not supported"),
+                        /* [] */0
+                      ])
+                };
+      case 3 : 
+          return {
+                  $bs: "variant",
+                  type: "attractor",
+                  constructor: "Disc",
+                  arguments: $$Array.of_list(/* :: */[
+                        Pervasives.failwith("tuple not supported"),
+                        /* [] */0
+                      ])
+                };
+      case 4 : 
+          return {
+                  $bs: "variant",
+                  type: "attractor",
+                  constructor: "Disc2",
+                  arguments: $$Array.of_list(/* :: */[
+                        Pervasives.failwith("tuple not supported"),
+                        /* [] */0
+                      ])
+                };
+      case 5 : 
+          return {
+                  $bs: "variant",
+                  type: "attractor",
+                  constructor: "Handkercheif",
+                  arguments: $$Array.of_list(/* :: */[
+                        Pervasives.failwith("tuple not supported"),
+                        /* [] */0
+                      ])
+                };
+      case 6 : 
+          return {
+                  $bs: "variant",
+                  type: "attractor",
+                  constructor: "Hyperbolic",
+                  arguments: $$Array.of_list(/* :: */[
+                        Pervasives.failwith("tuple not supported"),
+                        /* [] */0
+                      ])
+                };
+      case 7 : 
+          return {
+                  $bs: "variant",
+                  type: "attractor",
+                  constructor: "Diamond",
+                  arguments: $$Array.of_list(/* :: */[
+                        Pervasives.failwith("tuple not supported"),
+                        /* [] */0
+                      ])
+                };
+      case 8 : 
+          return {
+                  $bs: "variant",
+                  type: "attractor",
+                  constructor: "Ex",
+                  arguments: $$Array.of_list(/* :: */[
+                        Pervasives.failwith("tuple not supported"),
+                        /* [] */0
+                      ])
+                };
+      case 9 : 
+          return {
+                  $bs: "variant",
+                  type: "attractor",
+                  constructor: "Waves",
+                  arguments: $$Array.of_list(/* :: */[
+                        Pervasives.failwith("tuple not supported"),
+                        /* [] */0
+                      ])
+                };
+      case 10 : 
+          return {
+                  $bs: "variant",
+                  type: "attractor",
+                  constructor: "CosWaves",
+                  arguments: $$Array.of_list(/* :: */[
+                        Pervasives.failwith("tuple not supported"),
+                        /* [] */0
+                      ])
+                };
+      case 11 : 
+          return {
+                  $bs: "variant",
+                  type: "attractor",
+                  constructor: "Fisheye",
+                  arguments: $$Array.of_list(/* :: */[
+                        value[0],
+                        /* [] */0
+                      ])
+                };
+      case 12 : 
+          return {
+                  $bs: "variant",
+                  type: "attractor",
+                  constructor: "Fisheye2",
+                  arguments: $$Array.of_list(/* :: */[
+                        value[0],
+                        /* [] */0
+                      ])
+                };
+      case 13 : 
+          return {
+                  $bs: "variant",
+                  type: "attractor",
+                  constructor: "Popcorn",
+                  arguments: $$Array.of_list(/* :: */[
+                        Pervasives.failwith("tuple not supported"),
+                        /* [] */0
+                      ])
+                };
+      case 14 : 
+          return {
+                  $bs: "variant",
+                  type: "attractor",
+                  constructor: "Tangent",
+                  arguments: $$Array.of_list(/* :: */[
+                        Pervasives.failwith("tuple not supported"),
+                        /* [] */0
+                      ])
+                };
+      
+    }
+  }
+}
+
 function run(attractor) {
   if (typeof attractor === "number") {
     switch (attractor) {
@@ -6713,7 +9829,488 @@ function run(attractor) {
   }
 }
 
-var T = /* module */[];
+function p6__to_json(value) {
+  var arg1 = value[1];
+  var arg0 = value[0];
+  return /* array */[
+          /* array */[
+            arg0[0],
+            arg0[1],
+            arg0[2]
+          ],
+          /* array */[
+            arg1[0],
+            arg1[1],
+            arg1[2]
+          ]
+        ];
+}
+
+function p6__from_json(value) {
+  var match = Js_json.classify(value);
+  if (typeof match === "number") {
+    return /* None */0;
+  } else if (match.tag === 3) {
+    var match$1 = match[0];
+    if (match$1.length !== 2) {
+      return /* None */0;
+    } else {
+      var arg0 = match$1[0];
+      var arg1 = match$1[1];
+      var match$2 = Js_json.classify(arg0);
+      var match$3;
+      if (typeof match$2 === "number") {
+        match$3 = /* None */0;
+      } else if (match$2.tag === 3) {
+        var match$4 = match$2[0];
+        if (match$4.length !== 3) {
+          match$3 = /* None */0;
+        } else {
+          var arg0$1 = match$4[0];
+          var arg1$1 = match$4[1];
+          var arg2 = match$4[2];
+          var match$5 = float__from_json(arg0$1);
+          if (match$5) {
+            var match$6 = float__from_json(arg1$1);
+            if (match$6) {
+              var match$7 = float__from_json(arg2);
+              match$3 = match$7 ? /* Some */[/* tuple */[
+                    match$5[0],
+                    match$6[0],
+                    match$7[0]
+                  ]] : /* None */0;
+            } else {
+              match$3 = /* None */0;
+            }
+          } else {
+            match$3 = /* None */0;
+          }
+        }
+      } else {
+        match$3 = /* None */0;
+      }
+      if (match$3) {
+        var match$8 = Js_json.classify(arg1);
+        var match$9;
+        if (typeof match$8 === "number") {
+          match$9 = /* None */0;
+        } else if (match$8.tag === 3) {
+          var match$10 = match$8[0];
+          if (match$10.length !== 3) {
+            match$9 = /* None */0;
+          } else {
+            var arg0$2 = match$10[0];
+            var arg1$2 = match$10[1];
+            var arg2$1 = match$10[2];
+            var match$11 = float__from_json(arg0$2);
+            if (match$11) {
+              var match$12 = float__from_json(arg1$2);
+              if (match$12) {
+                var match$13 = float__from_json(arg2$1);
+                match$9 = match$13 ? /* Some */[/* tuple */[
+                      match$11[0],
+                      match$12[0],
+                      match$13[0]
+                    ]] : /* None */0;
+              } else {
+                match$9 = /* None */0;
+              }
+            } else {
+              match$9 = /* None */0;
+            }
+          }
+        } else {
+          match$9 = /* None */0;
+        }
+        if (match$9) {
+          return /* Some */[/* tuple */[
+                    match$3[0],
+                    match$9[0]
+                  ]];
+        } else {
+          return /* None */0;
+        }
+      } else {
+        return /* None */0;
+      }
+    }
+  } else {
+    return /* None */0;
+  }
+}
+
+function p6__to_devtools() {
+  return Pervasives.failwith("tuple not supported");
+}
+
+function transform__to_json(value) {
+  var result = { };
+  result["pre"] = p6__to_json(value[/* pre */0]);
+  result["attractor"] = attractor__to_json(value[/* attractor */1]);
+  result["post"] = p6__to_json(value[/* post */2]);
+  return result;
+}
+
+function transform__from_json(value) {
+  var match = Js_json.classify(value);
+  if (typeof match === "number") {
+    return /* None */0;
+  } else if (match.tag === 2) {
+    var value$1 = match[0];
+    var match$1 = value$1["pre"];
+    if (match$1 !== undefined) {
+      var match$2 = p6__from_json(match$1);
+      if (match$2) {
+        var match$3 = value$1["attractor"];
+        if (match$3 !== undefined) {
+          var match$4 = attractor__from_json(match$3);
+          if (match$4) {
+            var match$5 = value$1["post"];
+            if (match$5 !== undefined) {
+              var match$6 = p6__from_json(match$5);
+              if (match$6) {
+                return /* Some */[/* record */[
+                          /* pre */match$2[0],
+                          /* attractor */match$4[0],
+                          /* post */match$6[0]
+                        ]];
+              } else {
+                return /* None */0;
+              }
+            } else {
+              return /* None */0;
+            }
+          } else {
+            return /* None */0;
+          }
+        } else {
+          return /* None */0;
+        }
+      } else {
+        return /* None */0;
+      }
+    } else {
+      return /* None */0;
+    }
+  } else {
+    return /* None */0;
+  }
+}
+
+function transform__to_devtools(value) {
+  var result = { };
+  result["pre"] = Pervasives.failwith("tuple not supported");
+  result["attractor"] = attractor__to_devtools(value[/* attractor */1]);
+  result["post"] = Pervasives.failwith("tuple not supported");
+  return {
+          $bs: "record",
+          type: "transform",
+          attributes: result
+        };
+}
+
+function int__to_json$1(x) {
+  return x;
+}
+
+function ref__to_json$1(convert, x) {
+  return Curry._1(convert, x[0]);
+}
+
+function float__to_json$1(prim) {
+  return prim;
+}
+
+function list__to_json$1(convert, items) {
+  return $$Array.of_list(List.map(convert, items));
+}
+
+function string__to_json$1(prim) {
+  return prim;
+}
+
+var array__to_json$1 = $$Array.map;
+
+var bool__to_json$1 = Js_boolean.to_js_boolean;
+
+function option__to_json$1(convert, value) {
+  if (value) {
+    return /* array */[Curry._1(convert, value[0])];
+  } else {
+    return null;
+  }
+}
+
+function ref__from_json$1(convert, x) {
+  var match = Curry._1(convert, x);
+  if (match) {
+    return /* Some */[[match[0]]];
+  } else {
+    return /* None */0;
+  }
+}
+
+function int__from_json$1(x) {
+  var match = Js_json.classify(x);
+  if (typeof match === "number" || match.tag !== 1) {
+    return /* None */0;
+  } else {
+    return /* Some */[match[0] | 0];
+  }
+}
+
+function float__from_json$1(x) {
+  var match = Js_json.classify(x);
+  if (typeof match === "number" || match.tag !== 1) {
+    return /* None */0;
+  } else {
+    return /* Some */[match[0]];
+  }
+}
+
+function list__from_json$1(convert, items) {
+  var match = Js_json.classify(items);
+  if (typeof match === "number") {
+    return /* None */0;
+  } else if (match.tag === 3) {
+    try {
+      var items$1 = $$Array.map((function (item) {
+              var match = Curry._1(convert, item);
+              if (match) {
+                return match[0];
+              } else {
+                return Pervasives.failwith("Item failed to parse");
+              }
+            }), match[0]);
+      return /* Some */[$$Array.to_list(items$1)];
+    }
+    catch (exn){
+      return /* None */0;
+    }
+  } else {
+    return /* None */0;
+  }
+}
+
+function string__from_json$1(value) {
+  var match = Js_json.classify(value);
+  if (typeof match === "number" || match.tag) {
+    return /* None */0;
+  } else {
+    return /* Some */[match[0]];
+  }
+}
+
+function array__from_json$1(convert, items) {
+  var match = Js_json.classify(items);
+  if (typeof match === "number") {
+    return /* None */0;
+  } else if (match.tag === 3) {
+    try {
+      var items$1 = $$Array.map((function (item) {
+              var match = Curry._1(convert, item);
+              if (match) {
+                return match[0];
+              } else {
+                return Pervasives.failwith("Item failed to parse");
+              }
+            }), match[0]);
+      return /* Some */[items$1];
+    }
+    catch (exn){
+      return /* None */0;
+    }
+  } else {
+    return /* None */0;
+  }
+}
+
+function bool__from_json$1(value) {
+  var match = Js_json.classify(value);
+  if (typeof match === "number") {
+    switch (match) {
+      case 0 : 
+          return /* Some */[/* false */0];
+      case 1 : 
+          return /* Some */[/* true */1];
+      case 2 : 
+          return /* None */0;
+      
+    }
+  } else {
+    return /* None */0;
+  }
+}
+
+function option__from_json$1(convert, value) {
+  var match = Js_json.classify(value);
+  if (typeof match === "number") {
+    if (match === 2) {
+      return /* Some */[/* None */0];
+    } else {
+      return /* None */0;
+    }
+  } else if (match.tag === 3) {
+    var match$1 = match[0];
+    if (match$1.length !== 1) {
+      return /* None */0;
+    } else {
+      var item = match$1[0];
+      var match$2 = Curry._1(convert, item);
+      if (match$2) {
+        return /* Some */[/* Some */[match$2[0]]];
+      } else {
+        return /* None */0;
+      }
+    }
+  } else {
+    return /* None */0;
+  }
+}
+
+function ref__to_devtools$1(convert, x) {
+  return {
+          $bs: "ref",
+          contents: Curry._1(convert, x)
+        };
+}
+
+function int__to_devtools$1(prim) {
+  return prim;
+}
+
+function float__to_devtools$1(prim) {
+  return prim;
+}
+
+function string__to_devtools$1(prim) {
+  return prim;
+}
+
+function bool__to_devtools$1(prim) {
+  return prim;
+}
+
+function list__to_devtools$1(convert, items) {
+  return {
+          $bs: "list",
+          items: $$Array.of_list(List.map(convert, items))
+        };
+}
+
+var array__to_devtools$1 = $$Array.map;
+
+function option__to_devtools$1(convert, item) {
+  if (item) {
+    return {
+            $bs: "optional",
+            empty: /* false */0,
+            value: Curry._1(convert, item[0])
+          };
+  } else {
+    return {
+            $bs: "optional",
+            empty: /* true */1,
+            value: null
+          };
+  }
+}
+
+function item__to_json(value) {
+  var result = { };
+  result["weight"] = value[/* weight */0];
+  result["transform"] = transform__to_json(value[/* transform */1]);
+  result["name"] = value[/* name */2];
+  return result;
+}
+
+function item__from_json(value) {
+  var match = Js_json.classify(value);
+  if (typeof match === "number") {
+    return /* None */0;
+  } else if (match.tag === 2) {
+    var value$1 = match[0];
+    var match$1 = value$1["weight"];
+    if (match$1 !== undefined) {
+      var match$2 = int__from_json$1(match$1);
+      if (match$2) {
+        var match$3 = value$1["transform"];
+        if (match$3 !== undefined) {
+          var match$4 = transform__from_json(match$3);
+          if (match$4) {
+            var match$5 = value$1["name"];
+            if (match$5 !== undefined) {
+              var match$6 = string__from_json$1(match$5);
+              if (match$6) {
+                return /* Some */[/* record */[
+                          /* weight */match$2[0],
+                          /* transform */match$4[0],
+                          /* name */match$6[0]
+                        ]];
+              } else {
+                return /* None */0;
+              }
+            } else {
+              return /* None */0;
+            }
+          } else {
+            return /* None */0;
+          }
+        } else {
+          return /* None */0;
+        }
+      } else {
+        return /* None */0;
+      }
+    } else {
+      return /* None */0;
+    }
+  } else {
+    return /* None */0;
+  }
+}
+
+function item__to_devtools(value) {
+  var result = { };
+  result["weight"] = value[/* weight */0];
+  result["transform"] = transform__to_devtools(value[/* transform */1]);
+  result["name"] = value[/* name */2];
+  return {
+          $bs: "record",
+          type: "item",
+          attributes: result
+        };
+}
+
+var T = /* module */[
+  /* int__to_json */int__to_json$1,
+  /* ref__to_json */ref__to_json$1,
+  /* float__to_json */float__to_json$1,
+  /* list__to_json */list__to_json$1,
+  /* string__to_json */string__to_json$1,
+  /* array__to_json */array__to_json$1,
+  /* bool__to_json */bool__to_json$1,
+  /* option__to_json */option__to_json$1,
+  /* ref__from_json */ref__from_json$1,
+  /* int__from_json */int__from_json$1,
+  /* float__from_json */float__from_json$1,
+  /* list__from_json */list__from_json$1,
+  /* string__from_json */string__from_json$1,
+  /* array__from_json */array__from_json$1,
+  /* bool__from_json */bool__from_json$1,
+  /* option__from_json */option__from_json$1,
+  /* ref__to_devtools */ref__to_devtools$1,
+  /* int__to_devtools */int__to_devtools$1,
+  /* float__to_devtools */float__to_devtools$1,
+  /* string__to_devtools */string__to_devtools$1,
+  /* bool__to_devtools */bool__to_devtools$1,
+  /* list__to_devtools */list__to_devtools$1,
+  /* array__to_devtools */array__to_devtools$1,
+  /* option__to_devtools */option__to_devtools$1,
+  /* item__to_json */item__to_json,
+  /* item__from_json */item__from_json,
+  /* item__to_devtools */item__to_devtools
+];
 
 var idMatrix = /* tuple */[
   /* tuple */[
@@ -6790,13 +10387,11 @@ function run$1(item) {
   }
 }
 
-function item($staropt$star, $staropt$star$1, $staropt$star$2, $staropt$star$3, name, attractor) {
+function item($staropt$star, $staropt$star$1, $staropt$star$2, name, attractor) {
   var weight = $staropt$star ? $staropt$star[0] : 1;
-  var enabled = $staropt$star$1 ? $staropt$star$1[0] : /* false */0;
-  var pre = $staropt$star$2 ? $staropt$star$2[0] : idMatrix;
-  var post = $staropt$star$3 ? $staropt$star$3[0] : idMatrix;
+  var pre = $staropt$star$1 ? $staropt$star$1[0] : idMatrix;
+  var post = $staropt$star$2 ? $staropt$star$2[0] : idMatrix;
   return /* record */[
-          /* enabled */enabled,
           /* weight */weight,
           /* transform : record */[
             /* pre */pre,
@@ -6807,42 +10402,89 @@ function item($staropt$star, $staropt$star$1, $staropt$star$2, $staropt$star$3, 
         ];
 }
 
-function affine$1($staropt$star, name, pre) {
-  var enabled = $staropt$star ? $staropt$star[0] : /* false */0;
-  return item(/* None */0, /* Some */[enabled], /* Some */[pre], /* None */0, name, /* Identity */7);
+function affine$1(name, pre) {
+  return item(/* None */0, /* Some */[pre], /* None */0, name, /* Identity */7);
 }
 
 var pi = 3.14159;
 
-exports.pi           = pi;
-exports.sinusoidal   = sinusoidal;
-exports.spherical    = spherical;
-exports.swirl        = swirl;
-exports.horseshoe    = horseshoe;
-exports.disc         = disc;
-exports.disc2        = disc2;
-exports.handkercheif = handkercheif;
-exports.hyperbolic   = hyperbolic;
-exports.diamond      = diamond;
-exports.ex           = ex;
-exports.waves        = waves;
-exports.coswaves     = coswaves;
-exports.fisheye      = fisheye;
-exports.fisheye2     = fisheye2;
-exports.popcorn      = popcorn;
-exports.tangent      = tangent;
-exports.column       = column;
-exports.row          = row;
-exports.fold_right   = fold_right;
-exports.fold_left    = fold_left;
-exports.fold_up      = fold_up;
-exports.fold_down    = fold_down;
-exports.identity     = identity;
-exports.T            = T;
-exports.idMatrix     = idMatrix;
-exports.run          = run$1;
-exports.item         = item;
-exports.affine       = affine$1;
+exports.int__to_json           = int__to_json;
+exports.ref__to_json           = ref__to_json;
+exports.float__to_json         = float__to_json;
+exports.list__to_json          = list__to_json;
+exports.string__to_json        = string__to_json;
+exports.array__to_json         = array__to_json;
+exports.bool__to_json          = bool__to_json;
+exports.option__to_json        = option__to_json;
+exports.ref__from_json         = ref__from_json;
+exports.int__from_json         = int__from_json;
+exports.float__from_json       = float__from_json;
+exports.list__from_json        = list__from_json;
+exports.string__from_json      = string__from_json;
+exports.array__from_json       = array__from_json;
+exports.bool__from_json        = bool__from_json;
+exports.option__from_json      = option__from_json;
+exports.ref__to_devtools       = ref__to_devtools;
+exports.int__to_devtools       = int__to_devtools;
+exports.float__to_devtools     = float__to_devtools;
+exports.string__to_devtools    = string__to_devtools;
+exports.bool__to_devtools      = bool__to_devtools;
+exports.list__to_devtools      = list__to_devtools;
+exports.array__to_devtools     = array__to_devtools;
+exports.option__to_devtools    = option__to_devtools;
+exports.pi                     = pi;
+exports.fn__to_json            = fn__to_json;
+exports.fn__from_json          = fn__from_json;
+exports.fn__to_devtools        = fn__to_devtools;
+exports.p1__to_json            = p1__to_json;
+exports.p1__from_json          = p1__from_json;
+exports.p1__to_devtools        = p1__to_devtools;
+exports.p2__to_json            = p2__to_json;
+exports.p2__from_json          = p2__from_json;
+exports.p2__to_devtools        = p2__to_devtools;
+exports.p3__to_json            = p3__to_json;
+exports.p3__from_json          = p3__from_json;
+exports.p3__to_devtools        = p3__to_devtools;
+exports.p4__to_json            = p4__to_json;
+exports.p4__from_json          = p4__from_json;
+exports.p4__to_devtools        = p4__to_devtools;
+exports.sinusoidal             = sinusoidal;
+exports.spherical              = spherical;
+exports.swirl                  = swirl;
+exports.horseshoe              = horseshoe;
+exports.disc                   = disc;
+exports.disc2                  = disc2;
+exports.handkercheif           = handkercheif;
+exports.hyperbolic             = hyperbolic;
+exports.diamond                = diamond;
+exports.ex                     = ex;
+exports.waves                  = waves;
+exports.coswaves               = coswaves;
+exports.fisheye                = fisheye;
+exports.fisheye2               = fisheye2;
+exports.popcorn                = popcorn;
+exports.tangent                = tangent;
+exports.column                 = column;
+exports.row                    = row;
+exports.fold_right             = fold_right;
+exports.fold_left              = fold_left;
+exports.fold_up                = fold_up;
+exports.fold_down              = fold_down;
+exports.identity               = identity;
+exports.attractor__to_json     = attractor__to_json;
+exports.attractor__from_json   = attractor__from_json;
+exports.attractor__to_devtools = attractor__to_devtools;
+exports.p6__to_json            = p6__to_json;
+exports.p6__from_json          = p6__from_json;
+exports.p6__to_devtools        = p6__to_devtools;
+exports.transform__to_json     = transform__to_json;
+exports.transform__from_json   = transform__from_json;
+exports.transform__to_devtools = transform__to_devtools;
+exports.T                      = T;
+exports.idMatrix               = idMatrix;
+exports.run                    = run$1;
+exports.item                   = item;
+exports.affine                 = affine$1;
 /* No side effect */
 
 

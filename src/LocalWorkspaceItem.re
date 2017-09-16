@@ -13,17 +13,17 @@ let consume fn item => {
 };
 
 let flame items item ctx => {
-  let items = List.map (fun i => i == item ? {...item, enabled: not item.enabled} : i) items;
-  let attractors = List.filter (fun i => i.enabled) items
-  |> List.map (fun i => (i.weight, i.transform));
-  Flame.draw ctx attractors size 40_000;
+  let items = List.map (fun (e, i) => i == item ? (not e, i) : (e, i)) items;
+  let transforms = List.filter (fun (e, i) => e) items
+  |> List.map (fun (_, i) => (i.weight, i.transform));
+  Flame.draw ctx transforms size 40_000;
   ()
 };
 
 let evtValue event => (ReactDOMRe.domElementToObj (ReactEventRe.Form.target event))##value;
 
 let component = ReasonReact.reducerComponentWithRetainedProps "WorkspaceItem";
-let make ::setWeight ::toggleEnabled ::item ::items _children => {
+let make ::setWeight ::toggleEnabled ::enabled ::item ::items _children => {
   ...component,
   initialState: fun () => ref None,
   retainedProps: (item, items),
@@ -44,7 +44,7 @@ let make ::setWeight ::toggleEnabled ::item ::items _children => {
   render: fun {handle} => {
     WorkspaceNode.render
       onContext::(handle (fun context {state: ctx} => ctx := Some context))
-      ::size ::item ::toggleEnabled ::setWeight;
+      ::enabled ::size ::item ::toggleEnabled ::setWeight;
   }
 };
 

@@ -28,16 +28,18 @@ type state = {
   size: int,
   indices: array int,
   transforms: array Library.transform,
+  zoom: option ((float, float, float), (float, float, float)),
 
   pos: ref (float, float),
   iteration: ref int,
   mx: array int,
 };
 
-let init transforms size => {
+let init transforms size zoom => {
   indices: makeWeights transforms,
   transforms: Array.of_list (List.map snd transforms),
   pos: ref (runit (), runit ()),
+  zoom,
   iteration: ref 0,
   /** TODO try a UInt32Array for better speed? */
   mx: Array.make (size * size) 0,
@@ -161,7 +163,7 @@ let draw ctx transforms size iterations => {
   let mx = flame transforms size iterations;
   let max = findMax mx size;
 
-  Js.log (now () -. start);
+  /* Js.log (now () -. start); */
 
   render ctx mx max size;
 };

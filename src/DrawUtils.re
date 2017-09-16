@@ -1,5 +1,7 @@
 let scale (x, y) offset scale off => ((x +. offset) *. scale +. off, (y +. offset) *. scale +. off);
 
+let uid: unit => string = [%bs.raw "function(){return Math.random().toString(16)}"];
+
 let showGrid fn ctx w h by => {
   let hw = w /. 2.;
   let hh = h /. 2.;

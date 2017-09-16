@@ -30,9 +30,11 @@
   */
   "reason": {"react-jsx": 2},
   "ppx-flags": [
+    "./node_modules/.bin/ppx_magic",
     "./node_modules/.bin/reason_async"
   ],
   "bs-dependencies" : [
+    // "reason_async",
     "reason-react",
     "bs-glamor"
   ]

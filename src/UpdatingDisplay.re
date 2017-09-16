@@ -1,16 +1,12 @@
 
-let str = ReasonReact.stringToElement;
-
-let size = 800;
-
-let consume fn item => {
+/* let consume fn item => {
   switch item {
   | Some x => fn x
   | None => ()
   }
 };
 
-let sendFlame id attractors iterations => {
+let sendFlame id attractors iterations size => {
   if (attractors != []) {
     let attractors = List.map (fun {Library.T.weight, transform} => (weight, transform)) attractors;
     WorkerClient.postMessage (WorkerTypes.Render {id, attractors, size, iterations, transform: None});
@@ -24,13 +20,13 @@ let blit data _ ctx => {
 };
 
 let component = ReasonReact.reducerComponentWithRetainedProps "Display";
-let make ::disabled ::saveImage ::onSnapshot ::attractors ::onClick _children => {
+let make ::disabled ::size ::attractors _children => {
   ...component,
   initialState: fun () => (ref None, DrawUtils.uid(), 0),
   reducer: fun num (ctx, id, _) => ReasonReact.Update (ctx, id, num),
   retainedProps: (attractors, disabled),
   didMount: fun {state: (ctx, id, _), reduce} => {
-    sendFlame id attractors max_iterations;
+    sendFlame id attractors max_iterations size;
     WorkerClient.listen id (fun (data, iters) => {
       !ctx |> consume (blit data size);
       reduce (fun () => iters) ();
@@ -78,3 +74,4 @@ let make ::disabled ::saveImage ::onSnapshot ::attractors ::onClick _children =>
     </div>
   }
 };
+ */

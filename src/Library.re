@@ -218,7 +218,7 @@ type p6 = ((float, float, float), (float, float, float));
 
 let module T = {
   type item = {
-    enabled: bool,
+    /* enabled: bool, */
     weight: int,
     transform: transform,
     name: string,
@@ -246,17 +246,16 @@ let run item => {
   }
 };
 
-let item ::weight=1 ::enabled=false
+let item ::weight=1
 ::pre=idMatrix
 ::post=idMatrix
 name attractor => {
   name,
   weight,
-  enabled,
   transform: {pre, attractor, post},
 };
 
-let affine ::enabled=false name pre => item ::enabled ::pre name Identity;
+let affine name pre => item ::pre name Identity;
 
 
 

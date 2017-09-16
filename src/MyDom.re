@@ -1,20 +1,23 @@
 type imageElement;
-
 type canvasRenderingContext2D;
-
 type ctx = canvasRenderingContext2D;
-
 type canvasElement;
-
 type document;
-
 type element;
-
 type window;
-
 type event_like 'a;
-
 type keyboardEvent;
+
+
+type blob;
+type url;
+
+external url: url = "URL" [@@bs.val];
+external createObjectURL: url => blob => string = "" [@@bs.send];
+external toBlob: canvasElement => (blob => unit) => unit = "" [@@bs.send];
+
+let createObjectURL = createObjectURL url;
+
 
 external document : document = "" [@@bs.val];
 
@@ -78,6 +81,7 @@ module Canvas = {
   external ellipse : ctx => float => float => float => float => float => float => float => unit =
     "" [@@bs.send];
   external moveTo : ctx => float => float => unit = "" [@@bs.send];
+  external canvas: ctx => canvasElement = "" [@@bs.get];
   external scale : ctx => float => float => unit = "" [@@bs.send];
   external translate : ctx => float => float => unit = "" [@@bs.send];
   external putImageData : ctx => imagedata => float => float => unit = "" [@@bs.send];

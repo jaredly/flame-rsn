@@ -1,25 +1,30 @@
 
 /** TODO make robust to absence of workers */
 
+open WorkerTypes;
 type self;
 external self: self = "" [@@bs.val];
-external onmessage: self => (Js.t {.data: WorkerClient.message} => unit) => unit = "" [@@bs.set];
-external postMessage: self => WorkerClient.workerMessage => unit = "" [@@bs.send];
+external onmessage: self => (Js.t {.data: message} => unit) => unit = "" [@@bs.set];
+external postMessage: self => workerMessage => unit = "" [@@bs.send];
 
-type workItem = {id: string, state: Flame.state, max: int};
+type workItem = {request: request, state: Flame.state};
 
 let waiting = ref [];
 let work = ref [];
 
 onmessage self (fun evt => {
   switch evt##data {
-  | WorkerClient.Render id attractors size max => {
-    if (attractors !== []) {
-      let state = Flame.init attractors size;
-      let filtered = List.filter (fun item => item.id !== id) !waiting;
-      waiting := [{id, state, max}, ...filtered];
+  | Render request => {
+    if (request.attractors !== []) {
+      let state = Flame.init request.attractors request.size request.transform;
+      let filtered = List.filter (fun item => item.request.id !== request.id) !waiting;
+      waiting := [{request, state}, ...filtered];
     }
     /* Js.log "gof message"; */
+  }
+  | Stop id => {
+    work := List.filter (fun item => item.request.id !== id) !work;
+    waiting := List.filter (fun item => item.request.id !== id) !waiting;
   }
   }
 });
@@ -29,8 +34,10 @@ let nextIterations num => {
     10_000
   } else if (num < 1_000_000) {
     100_000
-  } else {
+  } else if (num < 10_000_000) {
     500_000
+  } else {
+    5_000_000
   }
 };
 
@@ -40,18 +47,18 @@ let process () => {
     work := !waiting;
     waiting := [];
   }
-  | [{id, state, max}, ...rest] => {
+  | [{request, state}, ...rest] => {
     work := rest;
     let current = !state.Flame.iteration;
-    if (current < max) {
+    if (current < request.iterations) {
       let next = (nextIterations current);
-      let next = next + current > max ? max - current : next;
+      let next = next + current > request.iterations ? request.iterations - current : next;
       Flame.flameStep state next;
       let mmax = Flame.findMax state.mx state.size;
       let imagedata = MyDom.make state.size;
       Flame.renderToData imagedata state.size state.mx mmax;
-      postMessage self (WorkerClient.Blit id imagedata !state.iteration);
-      waiting := [{id, state, max}, ...!waiting];
+      postMessage self (Blit request.id imagedata !state.iteration);
+      waiting := [{request, state}, ...!waiting];
     }
   }
   };
