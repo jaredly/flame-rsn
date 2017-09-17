@@ -1,5 +1,6 @@
 
 let size = 2000;
+let fsize = float_of_int size;
 let max_iterations = 100_000_000;
 
 let blit data _ ctx => {
@@ -38,8 +39,10 @@ type state = {
 
 type action = 
   | SetIterations int
-  | StartMoving (int, int) MyDom.imageBitmap
-  | StopMoving matrix
+  | ZoomTo ((float, float), float)
+  | ZoomOut
+  /* | StartMoving (int, int) MyDom.imageBitmap
+  | StopMoving matrix */
   ;
 
 let force v => switch v {
@@ -69,18 +72,37 @@ let make ::onClose ::attractors _children => {
   },
   reducer: fun action state => switch action {
   | SetIterations iterations => ReasonReact.Update {...state, iterations}
-  | StartMoving pos imageBitmap => {
-      WorkerClient.stop state.id;
-      ReasonReact.Update {...state, moving: Moving imageBitmap pos}
-    }
-  | StopMoving matrix => ReasonReact.Update {
-    ...state, transform: Some (switch state.transform {
-    | Some mx => {
-      Js.log mx; Js.log matrix;
-      spy (combineMatricies mx matrix)
-    }
-    | None => spy (matrix)
-    }), moving: NotMoving}
+  | ZoomOut => ReasonReact.Update {...state, transform: None}
+  | ZoomTo ((x0, y0), sz) => {
+    let ((a, b, c), (d, e, f)) = switch state.transform {
+    | Some t => t
+    | None => Library.idMatrix
+    };
+    /* let newSize = a *. sz; */
+    let x0 = x0 *. 2.;
+    let y0 = y0 *. 2.;
+    let sz = sz *. 2.;
+    let newScale = fsize /. sz *. a;
+    let ox = c;
+    let oy = f;
+    let ox' = -. (x0 -. ox) /. a *. newScale;
+    let oy' = -. (y0 -. oy) /. a *. newScale;
+
+    let t = ((
+      newScale,
+      0.,
+      ox',
+    ), (
+      0.,
+      newScale,
+      oy',
+    ));
+    Js.log4 t x0 y0 sz;
+    Js.log fsize;
+    Js.log2 (a, b, c) (d, e, f);
+
+    ReasonReact.Update {...state, transform: Some t}
+  }
   },
   retainedProps: attractors,
   didMount: fun {state: {ctx, id, transform}, reduce} => {
@@ -120,6 +142,7 @@ let make ::onClose ::attractors _children => {
       width "1000px",
       backgroundColor "white",
       boxShadow "0 2px 5px #aaa",
+      position "relative",
     ])
       onClick=(fun evt => ReactEventRe.Mouse.stopPropagation evt)
     >
@@ -127,57 +150,15 @@ let make ::onClose ::attractors _children => {
         width=size
         height=size
         onContext=(handle (fun context {state: {ctx}} => ctx := Some context))
-        onMouseDown=(fun evt => {
-          [%guard let 0 = ReactEventRe.Mouse.button evt][@else ()];
-          let x = ReactEventRe.Mouse.clientX evt;
-          let y = ReactEventRe.Mouse.clientY evt;
-          let canvas = MyDom.Canvas.canvas (force !ctx);
-          let p = MyDom.createImageBitmap canvas;
-          Js.Promise.then_ (fun image => {
-            (reduce (fun image => StartMoving (x, y) image)) image;
-            Js.Promise.resolve ()
-          }) p |> ignore;
-        })
-        onMouseMove=?(switch moving {
-        | Moving image (cx, cy) => {
-          Some (fun evt => {
-            let x = ReactEventRe.Mouse.clientX evt;
-            let y = ReactEventRe.Mouse.clientY evt;
-            let (dx, dy) = (x - cx |> float_of_int, y - cy |> float_of_int);
-            let percent = dy /. (float_of_int size /. 4.);
-            let ctx = force !ctx;
-            let (tx, ty) = MyDom.getOffset (MyDom.Canvas.canvas ctx);
-            let (cfx, cfy) = (float_of_int (cx - tx) *. 2., float_of_int (cy - ty) *. 2.);
-            let zoom = 1. +. 4. *. percent;
-            let nx = (cfx *. (1. -. zoom));
-            let ny = (cfy *. (1. -. zoom));
-            let fsize = float_of_int size;
-            let ns = (fsize *. zoom);
-            /* Js.logMany [|cfx, cfy, nx, ny, zoom|]; */
-            MyDom.Canvas.clearRect ctx 0. 0. fsize fsize;
-            MyDom.Canvas.drawImage ctx image nx ny ns ns;
-          })
-        }
-        | _ => None
-        })
-        onMouseUp=?(switch moving {
-        | Moving image (cx, cy) => {
-          Some (reduce (fun evt => {
-            let x = ReactEventRe.Mouse.clientX evt;
-            let y = ReactEventRe.Mouse.clientY evt;
-            let (dx, dy) = (x - cx |> float_of_int, y - cy |> float_of_int);
-            let percent = dy /. (float_of_int size /. 4.);
-            let ctx = force !ctx;
-            let (tx, ty) = MyDom.getOffset (MyDom.Canvas.canvas ctx);
-            let (cfx, cfy) = (float_of_int (cx - tx) *. 2., float_of_int (cy - ty) *. 2.);
-            let zoom = 1. +. 4. *. percent;
-            let nx = (cfx *. (1. -. zoom));
-            let ny = (cfy *. (1. -. zoom));
-            StopMoving ((zoom, 0., nx), (0., zoom, ny))
-          }))
-        }
-        | _ => None
-        })
+      />
+      <ZoomCanvas
+        size=(size / 2)
+        className=Glamor.(css[
+          position "absolute",
+          left "0",
+          top "0",
+        ])
+        onZoom=(reduce (fun zoom => ZoomTo zoom))
       />
       <progress
         value=(string_of_int iterations)

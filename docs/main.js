@@ -50324,11 +50324,13 @@ var MyDom                   = __webpack_require__(158);
 var React                   = __webpack_require__(20);
 var Glamor                  = __webpack_require__(45);
 var Js_json                 = __webpack_require__(266);
+var Library                 = __webpack_require__(77);
 var Caml_obj                = __webpack_require__(33);
 var DrawUtils               = __webpack_require__(157);
 var Caml_array              = __webpack_require__(32);
 var Js_boolean              = __webpack_require__(267);
 var Pervasives              = __webpack_require__(25);
+var ZoomCanvas              = __webpack_require__(274);
 var ReasonReact             = __webpack_require__(27);
 var RetinaCanvas            = __webpack_require__(78);
 var WorkerClient            = __webpack_require__(242);
@@ -50540,6 +50542,8 @@ function option__to_devtools(convert, item) {
           };
   }
 }
+
+var fsize = 2000;
 
 function blit(data, _, ctx) {
   ctx.putImageData(data, 0, 0);
@@ -50799,28 +50803,26 @@ function moving__to_devtools(value) {
 }
 
 function action__to_json(value) {
-  switch (value.tag | 0) {
-    case 0 : 
-        return /* array */[
-                "SetIterations",
-                value[0]
-              ];
-    case 1 : 
-        var arg0 = value[0];
-        return /* array */[
-                "StartMoving",
-                /* array */[
-                  arg0[0],
-                  arg0[1]
-                ],
-                MyDom.imageBitmap__to_json(value[1])
-              ];
-    case 2 : 
-        return /* array */[
-                "StopMoving",
-                matrix__to_json(value[0])
-              ];
-    
+  if (typeof value === "number") {
+    return "ZoomOut";
+  } else if (value.tag) {
+    var arg0 = value[0];
+    var arg0$1 = arg0[0];
+    return /* array */[
+            "ZoomTo",
+            /* array */[
+              /* array */[
+                arg0$1[0],
+                arg0$1[1]
+              ],
+              arg0[1]
+            ]
+          ];
+  } else {
+    return /* array */[
+            "SetIterations",
+            value[0]
+          ];
   }
 }
 
@@ -50828,121 +50830,127 @@ function action__from_json(value) {
   var match = Js_json.classify(value);
   if (typeof match === "number") {
     return /* None */0;
-  } else if (match.tag === 3) {
-    var arr = match[0];
-    if (Caml_obj.caml_equal(Js_json.classify(Caml_array.caml_array_get(arr, 0)), /* JSONString */Block.__(0, ["SetIterations"]))) {
-      if (arr.length !== 2) {
-        return /* None */0;
-      } else {
-        var arg0 = arr[1];
-        var match$1 = int__from_json(arg0);
-        if (match$1) {
-          return /* Some */[/* SetIterations */Block.__(0, [match$1[0]])];
-        } else {
-          return /* None */0;
-        }
-      }
-    } else if (Caml_obj.caml_equal(Js_json.classify(Caml_array.caml_array_get(arr, 0)), /* JSONString */Block.__(0, ["StartMoving"]))) {
-      if (arr.length !== 3) {
-        return /* None */0;
-      } else {
-        var arg0$1 = arr[1];
-        var arg1 = arr[2];
-        var match$2 = Js_json.classify(arg0$1);
-        var match$3;
-        if (typeof match$2 === "number") {
-          match$3 = /* None */0;
-        } else if (match$2.tag === 3) {
-          var match$4 = match$2[0];
-          if (match$4.length !== 2) {
-            match$3 = /* None */0;
-          } else {
-            var arg0$2 = match$4[0];
-            var arg1$1 = match$4[1];
-            var match$5 = int__from_json(arg0$2);
-            if (match$5) {
-              var match$6 = int__from_json(arg1$1);
-              match$3 = match$6 ? /* Some */[/* tuple */[
-                    match$5[0],
-                    match$6[0]
-                  ]] : /* None */0;
-            } else {
-              match$3 = /* None */0;
-            }
-          }
-        } else {
-          match$3 = /* None */0;
-        }
-        if (match$3) {
-          var match$7 = MyDom.imageBitmap__from_json(arg1);
-          if (match$7) {
-            return /* Some */[/* StartMoving */Block.__(1, [
-                        match$3[0],
-                        match$7[0]
-                      ])];
+  } else {
+    switch (match.tag | 0) {
+      case 0 : 
+          if (match[0] === "ZoomOut") {
+            return /* Some */[/* ZoomOut */0];
           } else {
             return /* None */0;
           }
-        } else {
-          return /* None */0;
-        }
-      }
-    } else if (Caml_obj.caml_equal(Js_json.classify(Caml_array.caml_array_get(arr, 0)), /* JSONString */Block.__(0, ["StopMoving"]))) {
-      if (arr.length !== 2) {
+          break;
+      case 3 : 
+          var arr = match[0];
+          if (Caml_obj.caml_equal(Js_json.classify(Caml_array.caml_array_get(arr, 0)), /* JSONString */Block.__(0, ["SetIterations"]))) {
+            if (arr.length !== 2) {
+              return /* None */0;
+            } else {
+              var arg0 = arr[1];
+              var match$1 = int__from_json(arg0);
+              if (match$1) {
+                return /* Some */[/* SetIterations */Block.__(0, [match$1[0]])];
+              } else {
+                return /* None */0;
+              }
+            }
+          } else if (Caml_obj.caml_equal(Js_json.classify(Caml_array.caml_array_get(arr, 0)), /* JSONString */Block.__(0, ["ZoomTo"]))) {
+            if (arr.length !== 2) {
+              return /* None */0;
+            } else {
+              var arg0$1 = arr[1];
+              var match$2 = Js_json.classify(arg0$1);
+              var match$3;
+              if (typeof match$2 === "number") {
+                match$3 = /* None */0;
+              } else if (match$2.tag === 3) {
+                var match$4 = match$2[0];
+                if (match$4.length !== 2) {
+                  match$3 = /* None */0;
+                } else {
+                  var arg0$2 = match$4[0];
+                  var arg1 = match$4[1];
+                  var match$5 = Js_json.classify(arg0$2);
+                  var match$6;
+                  if (typeof match$5 === "number") {
+                    match$6 = /* None */0;
+                  } else if (match$5.tag === 3) {
+                    var match$7 = match$5[0];
+                    if (match$7.length !== 2) {
+                      match$6 = /* None */0;
+                    } else {
+                      var arg0$3 = match$7[0];
+                      var arg1$1 = match$7[1];
+                      var match$8 = float__from_json(arg0$3);
+                      if (match$8) {
+                        var match$9 = float__from_json(arg1$1);
+                        match$6 = match$9 ? /* Some */[/* tuple */[
+                              match$8[0],
+                              match$9[0]
+                            ]] : /* None */0;
+                      } else {
+                        match$6 = /* None */0;
+                      }
+                    }
+                  } else {
+                    match$6 = /* None */0;
+                  }
+                  if (match$6) {
+                    var match$10 = float__from_json(arg1);
+                    match$3 = match$10 ? /* Some */[/* tuple */[
+                          match$6[0],
+                          match$10[0]
+                        ]] : /* None */0;
+                  } else {
+                    match$3 = /* None */0;
+                  }
+                }
+              } else {
+                match$3 = /* None */0;
+              }
+              if (match$3) {
+                return /* Some */[/* ZoomTo */Block.__(1, [match$3[0]])];
+              } else {
+                return /* None */0;
+              }
+            }
+          } else {
+            return /* None */0;
+          }
+          break;
+      default:
         return /* None */0;
-      } else {
-        var arg0$3 = arr[1];
-        var match$8 = matrix__from_json(arg0$3);
-        if (match$8) {
-          return /* Some */[/* StopMoving */Block.__(2, [match$8[0]])];
-        } else {
-          return /* None */0;
-        }
-      }
-    } else {
-      return /* None */0;
     }
-  } else {
-    return /* None */0;
   }
 }
 
 function action__to_devtools(value) {
-  switch (value.tag | 0) {
-    case 0 : 
-        return {
-                $bs: "variant",
-                type: "action",
-                constructor: "SetIterations",
-                arguments: $$Array.of_list(/* :: */[
-                      value[0],
-                      /* [] */0
-                    ])
-              };
-    case 1 : 
-        return {
-                $bs: "variant",
-                type: "action",
-                constructor: "StartMoving",
-                arguments: $$Array.of_list(/* :: */[
-                      Pervasives.failwith("tuple not supported"),
-                      /* :: */[
-                        MyDom.imageBitmap__to_devtools(value[1]),
-                        /* [] */0
-                      ]
-                    ])
-              };
-    case 2 : 
-        return {
-                $bs: "variant",
-                type: "action",
-                constructor: "StopMoving",
-                arguments: $$Array.of_list(/* :: */[
-                      Pervasives.failwith("tuple not supported"),
-                      /* [] */0
-                    ])
-              };
-    
+  if (typeof value === "number") {
+    return {
+            $bs: "variant",
+            type: "action",
+            constructor: "ZoomOut",
+            arguments: /* array */[]
+          };
+  } else if (value.tag) {
+    return {
+            $bs: "variant",
+            type: "action",
+            constructor: "ZoomTo",
+            arguments: $$Array.of_list(/* :: */[
+                  Pervasives.failwith("tuple not supported"),
+                  /* [] */0
+                ])
+          };
+  } else {
+    return {
+            $bs: "variant",
+            type: "action",
+            constructor: "SetIterations",
+            arguments: $$Array.of_list(/* :: */[
+                  value[0],
+                  /* [] */0
+                ])
+          };
   }
 }
 
@@ -50954,7 +50962,7 @@ function force(v) {
           Caml_builtin_exceptions.assert_failure,
           [
             "Zoomer.re",
-            47,
+            50,
             10
           ]
         ];
@@ -51033,72 +51041,6 @@ function make(onClose, attractors, _) {
           /* willUpdate */component[/* willUpdate */7],
           /* shouldUpdate */component[/* shouldUpdate */8],
           /* render */(function (param) {
-              var match = param[/* state */4];
-              var moving = match[/* moving */4];
-              var ctx = match[/* ctx */0];
-              var reduce = param[/* reduce */3];
-              var tmp;
-              if (moving) {
-                var match$1 = moving[1];
-                var cy = match$1[1];
-                var cx = match$1[0];
-                var image = moving[0];
-                tmp = /* Some */[(function (evt) {
-                      var x = evt.clientX;
-                      var y = evt.clientY;
-                      var match_000 = x - cx | 0;
-                      var match_001 = y - cy | 0;
-                      var percent = match_001 / (2000 / 4);
-                      var ctx$1 = force(ctx[0]);
-                      var match = Curry._1(MyDom.getOffset, ctx$1.canvas);
-                      var match_000$1 = (cx - match[0] | 0) * 2;
-                      var match_001$1 = (cy - match[1] | 0) * 2;
-                      var zoom = 1 + 4 * percent;
-                      var nx = match_000$1 * (1 - zoom);
-                      var ny = match_001$1 * (1 - zoom);
-                      var fsize = 2000;
-                      var ns = fsize * zoom;
-                      ctx$1.clearRect(0, 0, fsize, fsize);
-                      ctx$1.drawImage(image, nx, ny, ns, ns);
-                      return /* () */0;
-                    })];
-              } else {
-                tmp = /* None */0;
-              }
-              var tmp$1;
-              if (moving) {
-                var match$2 = moving[1];
-                var cy$1 = match$2[1];
-                var cx$1 = match$2[0];
-                tmp$1 = /* Some */[Curry._1(reduce, (function (evt) {
-                          var x = evt.clientX;
-                          var y = evt.clientY;
-                          var match_000 = x - cx$1 | 0;
-                          var match_001 = y - cy$1 | 0;
-                          var percent = match_001 / (2000 / 4);
-                          var ctx$1 = force(ctx[0]);
-                          var match = Curry._1(MyDom.getOffset, ctx$1.canvas);
-                          var match_000$1 = (cx$1 - match[0] | 0) * 2;
-                          var match_001$1 = (cy$1 - match[1] | 0) * 2;
-                          var zoom = 1 + 4 * percent;
-                          var nx = match_000$1 * (1 - zoom);
-                          var ny = match_001$1 * (1 - zoom);
-                          return /* StopMoving */Block.__(2, [/* tuple */[
-                                      /* tuple */[
-                                        zoom,
-                                        0,
-                                        nx
-                                      ],
-                                      /* tuple */[
-                                        0,
-                                        zoom,
-                                        ny
-                                      ]
-                                    ]]);
-                        }))];
-              } else {
-                tmp$1 = /* None */0;
-              }
               return React.createElement("div", {
                           className: Glamor.css(/* :: */[
                                 Glamor.position("absolute"),
@@ -51135,7 +51077,10 @@ function make(onClose, attractors, _) {
                                       Glamor.backgroundColor("white"),
                                       /* :: */[
                                         Glamor.boxShadow("0 2px 5px #aaa"),
-                                        /* [] */0
+                                        /* :: */[
+                                          Glamor.position("relative"),
+                                          /* [] */0
+                                        ]
                                       ]
                                     ]
                                   ]),
@@ -51143,39 +51088,27 @@ function make(onClose, attractors, _) {
                                   evt.stopPropagation();
                                   return /* () */0;
                                 })
-                            }, ReasonReact.element(/* None */0, /* None */0, RetinaCanvas.make(2000, 2000, /* None */0, /* Some */[(function (evt) {
-                                          var match = evt.button;
-                                          if (match !== 0) {
-                                            return /* () */0;
-                                          } else {
-                                            var x = evt.clientX;
-                                            var y = evt.clientY;
-                                            var canvas = force(ctx[0]).canvas;
-                                            var p = createImageBitmap(canvas);
-                                            p.then((function (image) {
-                                                    Curry._2(reduce, (function (image) {
-                                                            return /* StartMoving */Block.__(1, [
-                                                                      /* tuple */[
-                                                                        x,
-                                                                        y
-                                                                      ],
-                                                                      image
-                                                                    ]);
-                                                          }), image);
-                                                    return Promise.resolve(/* () */0);
-                                                  }));
-                                            return /* () */0;
-                                          }
-                                        })], tmp, tmp$1, Curry._1(param[/* handle */0], (function (context, param) {
+                            }, ReasonReact.element(/* None */0, /* None */0, RetinaCanvas.make(2000, 2000, /* None */0, /* None */0, /* None */0, /* None */0, Curry._1(param[/* handle */0], (function (context, param) {
                                             param[/* state */4][/* ctx */0][0] = /* Some */[context];
                                             return /* () */0;
-                                          })), /* array */[])), React.createElement("progress", {
+                                          })), /* array */[])), ReasonReact.element(/* None */0, /* None */0, ZoomCanvas.make(1000, Curry._1(param[/* reduce */3], (function (zoom) {
+                                            return /* ZoomTo */Block.__(1, [zoom]);
+                                          })), /* Some */[Glamor.css(/* :: */[
+                                            Glamor.position("absolute"),
+                                            /* :: */[
+                                              Glamor.left("0"),
+                                              /* :: */[
+                                                Glamor.top("0"),
+                                                /* [] */0
+                                              ]
+                                            ]
+                                          ])], /* array */[])), React.createElement("progress", {
                                   className: Glamor.css(/* :: */[
                                         Glamor.width("100%"),
                                         /* [] */0
                                       ]),
                                   max: Pervasives.string_of_int(100000000),
-                                  value: Pervasives.string_of_int(match[/* iterations */2])
+                                  value: Pervasives.string_of_int(param[/* state */4][/* iterations */2])
                                 })));
             }),
           /* initialState */(function () {
@@ -51189,50 +51122,70 @@ function make(onClose, attractors, _) {
             }),
           /* retainedProps */attractors,
           /* reducer */(function (action, state) {
-              switch (action.tag | 0) {
-                case 0 : 
-                    return /* Update */Block.__(0, [/* record */[
-                                /* ctx */state[/* ctx */0],
-                                /* id */state[/* id */1],
-                                /* iterations */action[0],
-                                /* transform */state[/* transform */3],
-                                /* moving */state[/* moving */4]
-                              ]]);
-                case 1 : 
-                    WorkerClient.stop(state[/* id */1]);
-                    return /* Update */Block.__(0, [/* record */[
-                                /* ctx */state[/* ctx */0],
-                                /* id */state[/* id */1],
-                                /* iterations */state[/* iterations */2],
-                                /* transform */state[/* transform */3],
-                                /* moving : Moving */[
-                                  action[1],
-                                  action[0]
-                                ]
-                              ]]);
-                case 2 : 
-                    var matrix = action[0];
-                    var match = state[/* transform */3];
-                    var tmp;
-                    if (match) {
-                      var mx = match[0];
-                      console.log(mx);
-                      console.log(matrix);
-                      var x = combineMatricies(mx, matrix);
-                      console.log(x);
-                      tmp = x;
-                    } else {
-                      console.log(matrix);
-                      tmp = matrix;
-                    }
-                    return /* Update */Block.__(0, [/* record */[
-                                /* ctx */state[/* ctx */0],
-                                /* id */state[/* id */1],
-                                /* iterations */state[/* iterations */2],
-                                /* transform : Some */[tmp],
-                                /* moving : NotMoving */0
-                              ]]);
-                
+              if (typeof action === "number") {
+                return /* Update */Block.__(0, [/* record */[
+                            /* ctx */state[/* ctx */0],
+                            /* id */state[/* id */1],
+                            /* iterations */state[/* iterations */2],
+                            /* transform : None */0,
+                            /* moving */state[/* moving */4]
+                          ]]);
+              } else if (action.tag) {
+                var match = action[0];
+                var match$1 = match[0];
+                var match$2 = state[/* transform */3];
+                var match$3 = match$2 ? match$2[0] : Library.idMatrix;
+                var match$4 = match$3[1];
+                var f = match$4[2];
+                var match$5 = match$3[0];
+                var c = match$5[2];
+                var a = match$5[0];
+                var x0 = match$1[0] * 2;
+                var y0 = match$1[1] * 2;
+                var sz = match[1] * 2;
+                var newScale = fsize / sz * a;
+                var ox$prime = -(x0 - c) / a * newScale;
+                var oy$prime = -(y0 - f) / a * newScale;
+                var t_000 = /* tuple */[
+                  newScale,
+                  0,
+                  ox$prime
+                ];
+                var t_001 = /* tuple */[
+                  0,
+                  newScale,
+                  oy$prime
+                ];
+                var t = /* tuple */[
+                  t_000,
+                  t_001
+                ];
+                console.log(t, x0, y0, sz);
+                console.log(fsize);
+                console.log(/* tuple */[
+                      a,
+                      match$5[1],
+                      c
+                    ], /* tuple */[
+                      match$4[0],
+                      match$4[1],
+                      f
+                    ]);
+                return /* Update */Block.__(0, [/* record */[
+                            /* ctx */state[/* ctx */0],
+                            /* id */state[/* id */1],
+                            /* iterations */state[/* iterations */2],
+                            /* transform : Some */[t],
+                            /* moving */state[/* moving */4]
+                          ]]);
+              } else {
+                return /* Update */Block.__(0, [/* record */[
+                            /* ctx */state[/* ctx */0],
+                            /* id */state[/* id */1],
+                            /* iterations */action[0],
+                            /* transform */state[/* transform */3],
+                            /* moving */state[/* moving */4]
+                          ]]);
               }
             }),
           /* jsElementWrapped */component[/* jsElementWrapped */13]
@@ -51268,6 +51221,7 @@ exports.list__to_devtools   = list__to_devtools;
 exports.array__to_devtools  = array__to_devtools;
 exports.option__to_devtools = option__to_devtools;
 exports.size                = size;
+exports.fsize               = fsize;
 exports.max_iterations      = max_iterations;
 exports.blit                = blit;
 exports.sendFlame           = sendFlame;
@@ -51859,6 +51813,502 @@ exports.message__to_json     = message__to_json;
 exports.message__from_json   = message__from_json;
 exports.message__to_devtools = message__to_devtools;
 /* No side effect */
+
+
+/***/ }),
+/* 274 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+// Generated by BUCKLESCRIPT VERSION 1.9.1, PLEASE EDIT WITH CARE
+
+
+var List                    = __webpack_require__(18);
+var $$Array                 = __webpack_require__(43);
+var Curry                   = __webpack_require__(8);
+var MyDom                   = __webpack_require__(158);
+var React                   = __webpack_require__(20);
+var Js_json                 = __webpack_require__(266);
+var Js_boolean              = __webpack_require__(267);
+var Pervasives              = __webpack_require__(25);
+var ReasonReact             = __webpack_require__(27);
+var Caml_builtin_exceptions = __webpack_require__(7);
+
+function int__to_json(x) {
+  return x;
+}
+
+function ref__to_json(convert, x) {
+  return Curry._1(convert, x[0]);
+}
+
+function float__to_json(prim) {
+  return prim;
+}
+
+function list__to_json(convert, items) {
+  return $$Array.of_list(List.map(convert, items));
+}
+
+function string__to_json(prim) {
+  return prim;
+}
+
+var array__to_json = $$Array.map;
+
+var bool__to_json = Js_boolean.to_js_boolean;
+
+function option__to_json(convert, value) {
+  if (value) {
+    return /* array */[Curry._1(convert, value[0])];
+  } else {
+    return null;
+  }
+}
+
+function ref__from_json(convert, x) {
+  var match = Curry._1(convert, x);
+  if (match) {
+    return /* Some */[[match[0]]];
+  } else {
+    return /* None */0;
+  }
+}
+
+function int__from_json(x) {
+  var match = Js_json.classify(x);
+  if (typeof match === "number" || match.tag !== 1) {
+    return /* None */0;
+  } else {
+    return /* Some */[match[0] | 0];
+  }
+}
+
+function float__from_json(x) {
+  var match = Js_json.classify(x);
+  if (typeof match === "number" || match.tag !== 1) {
+    return /* None */0;
+  } else {
+    return /* Some */[match[0]];
+  }
+}
+
+function list__from_json(convert, items) {
+  var match = Js_json.classify(items);
+  if (typeof match === "number") {
+    return /* None */0;
+  } else if (match.tag === 3) {
+    try {
+      var items$1 = $$Array.map((function (item) {
+              var match = Curry._1(convert, item);
+              if (match) {
+                return match[0];
+              } else {
+                return Pervasives.failwith("Item failed to parse");
+              }
+            }), match[0]);
+      return /* Some */[$$Array.to_list(items$1)];
+    }
+    catch (exn){
+      return /* None */0;
+    }
+  } else {
+    return /* None */0;
+  }
+}
+
+function string__from_json(value) {
+  var match = Js_json.classify(value);
+  if (typeof match === "number" || match.tag) {
+    return /* None */0;
+  } else {
+    return /* Some */[match[0]];
+  }
+}
+
+function array__from_json(convert, items) {
+  var match = Js_json.classify(items);
+  if (typeof match === "number") {
+    return /* None */0;
+  } else if (match.tag === 3) {
+    try {
+      var items$1 = $$Array.map((function (item) {
+              var match = Curry._1(convert, item);
+              if (match) {
+                return match[0];
+              } else {
+                return Pervasives.failwith("Item failed to parse");
+              }
+            }), match[0]);
+      return /* Some */[items$1];
+    }
+    catch (exn){
+      return /* None */0;
+    }
+  } else {
+    return /* None */0;
+  }
+}
+
+function bool__from_json(value) {
+  var match = Js_json.classify(value);
+  if (typeof match === "number") {
+    switch (match) {
+      case 0 : 
+          return /* Some */[/* false */0];
+      case 1 : 
+          return /* Some */[/* true */1];
+      case 2 : 
+          return /* None */0;
+      
+    }
+  } else {
+    return /* None */0;
+  }
+}
+
+function option__from_json(convert, value) {
+  var match = Js_json.classify(value);
+  if (typeof match === "number") {
+    if (match === 2) {
+      return /* Some */[/* None */0];
+    } else {
+      return /* None */0;
+    }
+  } else if (match.tag === 3) {
+    var match$1 = match[0];
+    if (match$1.length !== 1) {
+      return /* None */0;
+    } else {
+      var item = match$1[0];
+      var match$2 = Curry._1(convert, item);
+      if (match$2) {
+        return /* Some */[/* Some */[match$2[0]]];
+      } else {
+        return /* None */0;
+      }
+    }
+  } else {
+    return /* None */0;
+  }
+}
+
+function ref__to_devtools(convert, x) {
+  return {
+          $bs: "ref",
+          contents: Curry._1(convert, x)
+        };
+}
+
+function int__to_devtools(prim) {
+  return prim;
+}
+
+function float__to_devtools(prim) {
+  return prim;
+}
+
+function string__to_devtools(prim) {
+  return prim;
+}
+
+function bool__to_devtools(prim) {
+  return prim;
+}
+
+function list__to_devtools(convert, items) {
+  return {
+          $bs: "list",
+          items: $$Array.of_list(List.map(convert, items))
+        };
+}
+
+var array__to_devtools = $$Array.map;
+
+function option__to_devtools(convert, item) {
+  if (item) {
+    return {
+            $bs: "optional",
+            empty: /* false */0,
+            value: Curry._1(convert, item[0])
+          };
+  } else {
+    return {
+            $bs: "optional",
+            empty: /* true */1,
+            value: null
+          };
+  }
+}
+
+function consume(fn, item) {
+  if (item) {
+    return Curry._1(fn, item[0]);
+  } else {
+    return /* () */0;
+  }
+}
+
+function force(v) {
+  if (v) {
+    return v[0];
+  } else {
+    throw [
+          Caml_builtin_exceptions.assert_failure,
+          [
+            "ZoomCanvas.re",
+            16,
+            10
+          ]
+        ];
+  }
+}
+
+var component = ReasonReact.reducerComponent("ZoomCanvas");
+
+function make(size, onZoom, className, _) {
+  var newrecord = component.slice();
+  newrecord[/* render */9] = (function (param) {
+      var match = param[/* state */4];
+      var mouseStart = match[/* mouseStart */1];
+      var ctx = match[/* ctx */0];
+      var fsize = size;
+      var tmp = {
+        ref: (function (canvas) {
+            if (canvas !== null) {
+              ctx[0] = /* Some */[canvas.getContext("2d")];
+              return /* () */0;
+            } else {
+              return /* () */0;
+            }
+          }),
+        height: Pervasives.string_of_int(size),
+        width: Pervasives.string_of_int(size),
+        onMouseDown: (function (evt) {
+            var match = evt.button;
+            if (match !== 0) {
+              return /* () */0;
+            } else {
+              var ctx$1 = force(ctx[0]);
+              var match$1 = Curry._1(MyDom.getOffset, ctx$1.canvas);
+              var x = evt.clientX - match$1[0] | 0;
+              var y = evt.clientY - match$1[1] | 0;
+              mouseStart[0] = /* Some */[/* tuple */[
+                  x,
+                  y
+                ]];
+              return /* () */0;
+            }
+          }),
+        onMouseLeave: (function () {
+            var ctx$1 = force(ctx[0]);
+            ctx$1.clearRect(0, 0, fsize, fsize);
+            mouseStart[0] = /* None */0;
+            return /* () */0;
+          }),
+        onMouseMove: (function (evt) {
+            var ctx$1 = force(ctx[0]);
+            var match = Curry._1(MyDom.getOffset, ctx$1.canvas);
+            var x = evt.clientX - match[0] | 0;
+            var y = evt.clientY - match[1] | 0;
+            ctx$1.clearRect(0, 0, fsize, fsize);
+            ctx$1.strokeStyle = "rgba(255, 0, 0, 0.5)";
+            var match$1 = mouseStart[0];
+            if (match$1) {
+              var match$2 = match$1[0];
+              var y0 = match$2[1];
+              var x0 = match$2[0];
+              var dx = x - x0;
+              var dy = y - y0;
+              var match$3 = +(Math.abs(dx) < Math.abs(dy));
+              var d = match$3 !== 0 ? dx : dy;
+              var match$4;
+              if (evt.metaKey) {
+                var x1 = x0 + d;
+                var y1 = y0 + d;
+                match$4 = /* tuple */[
+                  /* tuple */[
+                    x0 - d,
+                    y0 - d
+                  ],
+                  /* tuple */[
+                    x1,
+                    y1
+                  ]
+                ];
+              } else {
+                var x1$1 = x0 + d;
+                var y1$1 = y0 + d;
+                match$4 = /* tuple */[
+                  /* tuple */[
+                    x0,
+                    y0
+                  ],
+                  /* tuple */[
+                    x1$1,
+                    y1$1
+                  ]
+                ];
+              }
+              var match$5 = match$4[1];
+              var y1$2 = match$5[1];
+              var x1$2 = match$5[0];
+              var match$6 = match$4[0];
+              var y0$1 = match$6[1];
+              var x0$1 = match$6[0];
+              MyDom.Canvas[/* line */24](ctx$1, /* tuple */[
+                    0,
+                    y0$1
+                  ], /* tuple */[
+                    fsize,
+                    y0$1
+                  ]);
+              MyDom.Canvas[/* line */24](ctx$1, /* tuple */[
+                    x0$1,
+                    0
+                  ], /* tuple */[
+                    x0$1,
+                    fsize
+                  ]);
+              MyDom.Canvas[/* line */24](ctx$1, /* tuple */[
+                    0,
+                    y1$2
+                  ], /* tuple */[
+                    fsize,
+                    y1$2
+                  ]);
+              return MyDom.Canvas[/* line */24](ctx$1, /* tuple */[
+                          x1$2,
+                          0
+                        ], /* tuple */[
+                          x1$2,
+                          fsize
+                        ]);
+            } else {
+              MyDom.Canvas[/* line */24](ctx$1, /* tuple */[
+                    0,
+                    y
+                  ], /* tuple */[
+                    fsize,
+                    y
+                  ]);
+              return MyDom.Canvas[/* line */24](ctx$1, /* tuple */[
+                          x,
+                          0
+                        ], /* tuple */[
+                          x,
+                          fsize
+                        ]);
+            }
+          }),
+        onMouseUp: (function (evt) {
+            var match = evt.button;
+            if (match !== 0) {
+              return /* () */0;
+            } else {
+              var match$1 = mouseStart[0];
+              if (match$1) {
+                var match$2 = match$1[0];
+                var y0 = match$2[1];
+                var x0 = match$2[0];
+                var ctx$1 = force(ctx[0]);
+                var match$3 = Curry._1(MyDom.getOffset, ctx$1.canvas);
+                var x = evt.clientX - match$3[0] | 0;
+                var y = evt.clientY - match$3[1] | 0;
+                ctx$1.clearRect(0, 0, fsize, fsize);
+                ctx$1.strokeStyle = "rgba(255, 0, 0, 0.5)";
+                MyDom.Canvas[/* line */24](ctx$1, /* tuple */[
+                      0,
+                      y
+                    ], /* tuple */[
+                      fsize,
+                      y
+                    ]);
+                MyDom.Canvas[/* line */24](ctx$1, /* tuple */[
+                      x,
+                      0
+                    ], /* tuple */[
+                      x,
+                      fsize
+                    ]);
+                mouseStart[0] = /* None */0;
+                var dx = x - x0;
+                var dy = y - y0;
+                var match$4 = +(Math.abs(dx) < Math.abs(dy));
+                var d = match$4 !== 0 ? dx : dy;
+                var match$5 = evt.metaKey ? /* tuple */[
+                    /* tuple */[
+                      x0 - d,
+                      y0 - d
+                    ],
+                    d * 2
+                  ] : /* tuple */[
+                    /* tuple */[
+                      x0,
+                      y0
+                    ],
+                    d
+                  ];
+                var match$6 = match$5[0];
+                return Curry._1(onZoom, /* tuple */[
+                            /* tuple */[
+                              match$6[0],
+                              match$6[1]
+                            ],
+                            match$5[1]
+                          ]);
+              } else {
+                return /* () */0;
+              }
+            }
+          })
+      };
+      if (className) {
+        tmp.className = className[0];
+      }
+      return React.createElement("canvas", tmp);
+    });
+  newrecord[/* initialState */10] = (function () {
+      return /* record */[
+              /* ctx */[/* None */0],
+              /* mouseStart */[/* None */0]
+            ];
+    });
+  newrecord[/* reducer */12] = (function (_, _$1) {
+      return /* NoUpdate */0;
+    });
+  return newrecord;
+}
+
+exports.int__to_json        = int__to_json;
+exports.ref__to_json        = ref__to_json;
+exports.float__to_json      = float__to_json;
+exports.list__to_json       = list__to_json;
+exports.string__to_json     = string__to_json;
+exports.array__to_json      = array__to_json;
+exports.bool__to_json       = bool__to_json;
+exports.option__to_json     = option__to_json;
+exports.ref__from_json      = ref__from_json;
+exports.int__from_json      = int__from_json;
+exports.float__from_json    = float__from_json;
+exports.list__from_json     = list__from_json;
+exports.string__from_json   = string__from_json;
+exports.array__from_json    = array__from_json;
+exports.bool__from_json     = bool__from_json;
+exports.option__from_json   = option__from_json;
+exports.ref__to_devtools    = ref__to_devtools;
+exports.int__to_devtools    = int__to_devtools;
+exports.float__to_devtools  = float__to_devtools;
+exports.string__to_devtools = string__to_devtools;
+exports.bool__to_devtools   = bool__to_devtools;
+exports.list__to_devtools   = list__to_devtools;
+exports.array__to_devtools  = array__to_devtools;
+exports.option__to_devtools = option__to_devtools;
+exports.consume             = consume;
+exports.force               = force;
+exports.component           = component;
+exports.make                = make;
+/* component Not a pure module */
 
 
 /***/ })
