@@ -24,21 +24,18 @@ let consume fn item => {
 
 type matrix = ((float, float, float), (float, float, float));
 
-type moving =
-  | NotMoving
-  | Moving MyDom.imageBitmap (int, int);
-
 type state = {
   ctx: ref (option MyDom.ctx),
   id: string,
+  exportLink: option string,
   iterations: int,
   /** TODO maybe this shouldn't be optional, might be faster that way */
   transform: option matrix,
-  moving: moving,
 } [@@noserialize];
 
 type action = 
   | SetIterations int
+  | SetDownloadLink string
   | ZoomTo ((float, float), float)
   | ZoomOut
   /* | StartMoving (int, int) MyDom.imageBitmap
@@ -59,6 +56,8 @@ let combineMatricies ((a, b, c), (d, e, f)) ((a', b', c'), (d', e', f')) => {
 
 let spy x => {Js.log x; x};
 
+let roundish f => (float_of_int (int_of_float (f *. 100.))) /. 100.;
+
 let str = ReasonReact.stringToElement;
 let component = ReasonReact.reducerComponentWithRetainedProps "Zoomer";
 let make ::onClose ::attractors _children => {
@@ -67,41 +66,26 @@ let make ::onClose ::attractors _children => {
     ctx: ref None,
     id: DrawUtils.uid(),
     iterations: 0,
+    exportLink: None,
     transform: None,
-    moving: NotMoving,
   },
   reducer: fun action state => switch action {
   | SetIterations iterations => ReasonReact.Update {...state, iterations}
+  | SetDownloadLink link => ReasonReact.Update {...state, exportLink: Some link}
   | ZoomOut => ReasonReact.Update {...state, transform: None}
   | ZoomTo ((x0, y0), sz) => {
-    let ((a, b, c), (d, e, f)) = switch state.transform {
+    let ((scale, _, ox), (_, _, oy)) = switch state.transform {
     | Some t => t
     | None => Library.idMatrix
     };
-    /* let newSize = a *. sz; */
-    let x0 = x0 *. 2.;
-    let y0 = y0 *. 2.;
-    let sz = sz *. 2.;
-    let newScale = fsize /. sz *. a;
-    let ox = c;
-    let oy = f;
-    let ox' = -. (x0 -. ox) /. a *. newScale;
-    let oy' = -. (y0 -. oy) /. a *. newScale;
-
-    let t = ((
-      newScale,
-      0.,
-      ox',
-    ), (
-      0.,
-      newScale,
-      oy',
-    ));
-    Js.log4 t x0 y0 sz;
-    Js.log fsize;
-    Js.log2 (a, b, c) (d, e, f);
-
-    ReasonReact.Update {...state, transform: Some t}
+    let (x0, y0, sz) = (x0 *. 2., y0 *. 2., sz *. 2.);
+    let newScale = fsize /. sz *. scale;
+    let ox' = -. (x0 -. ox) /. scale *. newScale;
+    let oy' = -. (y0 -. oy) /. scale *. newScale;
+    ReasonReact.Update {...state, transform: Some (
+      (newScale, 0., ox'),
+      (0., newScale, oy')
+    )}
   }
   },
   retainedProps: attractors,
@@ -124,7 +108,7 @@ let make ::onClose ::attractors _children => {
   willUnmount: fun {state: {id}} => {
     WorkerClient.unlisten id;
   },
-  render: fun {handle, reduce, state: {iterations, ctx, transform, moving}} => {
+  render: fun {handle, reduce, state: {iterations, ctx, transform, exportLink, id}} => {
     <div
       className=Glamor.(css [
         position "absolute",
@@ -160,11 +144,34 @@ let make ::onClose ::attractors _children => {
         ])
         onZoom=(reduce (fun zoom => ZoomTo zoom))
       />
-      <progress
-        value=(string_of_int iterations)
-        max=(string_of_int max_iterations)
-        className=Glamor.(css[width "100%"])
-      />
+      <div className=Glamor.(css[flexDirection "row", padding "8px"])>
+        (switch exportLink {
+        | None => <button onClick=(fun _ => {
+          let canvas = MyDom.Canvas.canvas (force !ctx);
+          MyDom.toBlob canvas (reduce (fun blob => {
+            SetDownloadLink (MyDom.createObjectURL blob)
+          }));
+        })>(str "Export")</button>
+        | Some link => <a href=link download="flame.png">(str "Download")</a>
+        })
+        <div className=Glamor.(css[flexBasis "8px"]) />
+        <button onClick=(fun _ => WorkerClient.stop id)>(str "Stop")</button>
+        <div className=Glamor.(css[flexBasis "8px"]) />
+        <progress
+          value=(string_of_int iterations)
+          max=(string_of_int max_iterations)
+          className=Glamor.(css[flex "1"])
+        />
+        <div className=Glamor.(css[flexBasis "8px"]) />
+        (switch transform {
+        | None => ReasonReact.nullElement
+        | Some ((zoom, _, _), _) => <div
+            onClick=(reduce (fun _ => ZoomOut))
+          >
+            (str ("Zoom: " ^ (string_of_float (roundish zoom))))
+          </div>
+        })
+      </div>
       </div>
     </div>
   }

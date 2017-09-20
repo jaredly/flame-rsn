@@ -39,6 +39,7 @@ let saveImage id ctx fin => {
 };
 
 let getImage id fin => LocalForage.getBlob (imgKey id) (fun err blob => {
+  switch (Js.Null.to_opt err) { | Some err => Js.log err | None => ()};
   switch (Js.Null.to_opt blob) {
   | None => fin None
   | Some blob => fin (Some (MyDom.createObjectURL blob))

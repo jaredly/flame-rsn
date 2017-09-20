@@ -20598,7 +20598,10 @@ function saveImage(id, ctx, fin) {
 }
 
 function getImage(id, fin) {
-  return LocalForage.getBlob(imgPrefix + id, (function (_, blob) {
+  return LocalForage.getBlob(imgPrefix + id, (function (err, blob) {
+                if (err !== null) {
+                  console.log(err);
+                }
                 if (blob !== null) {
                   return Curry._1(fin, /* Some */[MyDom.createObjectURL(blob)]);
                 } else {
@@ -50692,137 +50695,36 @@ function matrix__to_devtools() {
   return Pervasives.failwith("tuple not supported");
 }
 
-function moving__to_json(value) {
-  if (value) {
-    var arg1 = value[1];
-    return /* array */[
-            "Moving",
-            MyDom.imageBitmap__to_json(value[0]),
-            /* array */[
-              arg1[0],
-              arg1[1]
-            ]
-          ];
-  } else {
-    return "NotMoving";
-  }
-}
-
-function moving__from_json(value) {
-  var match = Js_json.classify(value);
-  if (typeof match === "number") {
-    return /* None */0;
-  } else {
-    switch (match.tag | 0) {
-      case 0 : 
-          if (match[0] === "NotMoving") {
-            return /* Some */[/* NotMoving */0];
-          } else {
-            return /* None */0;
-          }
-          break;
-      case 3 : 
-          var arr = match[0];
-          if (Caml_obj.caml_equal(Js_json.classify(Caml_array.caml_array_get(arr, 0)), /* JSONString */Block.__(0, ["Moving"]))) {
-            if (arr.length !== 3) {
-              return /* None */0;
-            } else {
-              var arg0 = arr[1];
-              var arg1 = arr[2];
-              var match$1 = MyDom.imageBitmap__from_json(arg0);
-              if (match$1) {
-                var match$2 = Js_json.classify(arg1);
-                var match$3;
-                if (typeof match$2 === "number") {
-                  match$3 = /* None */0;
-                } else if (match$2.tag === 3) {
-                  var match$4 = match$2[0];
-                  if (match$4.length !== 2) {
-                    match$3 = /* None */0;
-                  } else {
-                    var arg0$1 = match$4[0];
-                    var arg1$1 = match$4[1];
-                    var match$5 = int__from_json(arg0$1);
-                    if (match$5) {
-                      var match$6 = int__from_json(arg1$1);
-                      match$3 = match$6 ? /* Some */[/* tuple */[
-                            match$5[0],
-                            match$6[0]
-                          ]] : /* None */0;
-                    } else {
-                      match$3 = /* None */0;
-                    }
-                  }
-                } else {
-                  match$3 = /* None */0;
-                }
-                if (match$3) {
-                  return /* Some */[/* Moving */[
-                            match$1[0],
-                            match$3[0]
-                          ]];
-                } else {
-                  return /* None */0;
-                }
-              } else {
-                return /* None */0;
-              }
-            }
-          } else {
-            return /* None */0;
-          }
-          break;
-      default:
-        return /* None */0;
-    }
-  }
-}
-
-function moving__to_devtools(value) {
-  if (value) {
-    return {
-            $bs: "variant",
-            type: "moving",
-            constructor: "Moving",
-            arguments: $$Array.of_list(/* :: */[
-                  MyDom.imageBitmap__to_devtools(value[0]),
-                  /* :: */[
-                    Pervasives.failwith("tuple not supported"),
-                    /* [] */0
-                  ]
-                ])
-          };
-  } else {
-    return {
-            $bs: "variant",
-            type: "moving",
-            constructor: "NotMoving",
-            arguments: /* array */[]
-          };
-  }
-}
-
 function action__to_json(value) {
   if (typeof value === "number") {
     return "ZoomOut";
-  } else if (value.tag) {
-    var arg0 = value[0];
-    var arg0$1 = arg0[0];
-    return /* array */[
-            "ZoomTo",
-            /* array */[
-              /* array */[
-                arg0$1[0],
-                arg0$1[1]
-              ],
-              arg0[1]
-            ]
-          ];
   } else {
-    return /* array */[
-            "SetIterations",
-            value[0]
-          ];
+    switch (value.tag | 0) {
+      case 0 : 
+          return /* array */[
+                  "SetIterations",
+                  value[0]
+                ];
+      case 1 : 
+          return /* array */[
+                  "SetDownloadLink",
+                  value[0]
+                ];
+      case 2 : 
+          var arg0 = value[0];
+          var arg0$1 = arg0[0];
+          return /* array */[
+                  "ZoomTo",
+                  /* array */[
+                    /* array */[
+                      arg0$1[0],
+                      arg0$1[1]
+                    ],
+                    arg0[1]
+                  ]
+                ];
+      
+    }
   }
 }
 
@@ -50853,62 +50755,74 @@ function action__from_json(value) {
                 return /* None */0;
               }
             }
-          } else if (Caml_obj.caml_equal(Js_json.classify(Caml_array.caml_array_get(arr, 0)), /* JSONString */Block.__(0, ["ZoomTo"]))) {
+          } else if (Caml_obj.caml_equal(Js_json.classify(Caml_array.caml_array_get(arr, 0)), /* JSONString */Block.__(0, ["SetDownloadLink"]))) {
             if (arr.length !== 2) {
               return /* None */0;
             } else {
               var arg0$1 = arr[1];
-              var match$2 = Js_json.classify(arg0$1);
-              var match$3;
-              if (typeof match$2 === "number") {
-                match$3 = /* None */0;
-              } else if (match$2.tag === 3) {
-                var match$4 = match$2[0];
-                if (match$4.length !== 2) {
-                  match$3 = /* None */0;
+              var match$2 = string__from_json(arg0$1);
+              if (match$2) {
+                return /* Some */[/* SetDownloadLink */Block.__(1, [match$2[0]])];
+              } else {
+                return /* None */0;
+              }
+            }
+          } else if (Caml_obj.caml_equal(Js_json.classify(Caml_array.caml_array_get(arr, 0)), /* JSONString */Block.__(0, ["ZoomTo"]))) {
+            if (arr.length !== 2) {
+              return /* None */0;
+            } else {
+              var arg0$2 = arr[1];
+              var match$3 = Js_json.classify(arg0$2);
+              var match$4;
+              if (typeof match$3 === "number") {
+                match$4 = /* None */0;
+              } else if (match$3.tag === 3) {
+                var match$5 = match$3[0];
+                if (match$5.length !== 2) {
+                  match$4 = /* None */0;
                 } else {
-                  var arg0$2 = match$4[0];
-                  var arg1 = match$4[1];
-                  var match$5 = Js_json.classify(arg0$2);
-                  var match$6;
-                  if (typeof match$5 === "number") {
-                    match$6 = /* None */0;
-                  } else if (match$5.tag === 3) {
-                    var match$7 = match$5[0];
-                    if (match$7.length !== 2) {
-                      match$6 = /* None */0;
+                  var arg0$3 = match$5[0];
+                  var arg1 = match$5[1];
+                  var match$6 = Js_json.classify(arg0$3);
+                  var match$7;
+                  if (typeof match$6 === "number") {
+                    match$7 = /* None */0;
+                  } else if (match$6.tag === 3) {
+                    var match$8 = match$6[0];
+                    if (match$8.length !== 2) {
+                      match$7 = /* None */0;
                     } else {
-                      var arg0$3 = match$7[0];
-                      var arg1$1 = match$7[1];
-                      var match$8 = float__from_json(arg0$3);
-                      if (match$8) {
-                        var match$9 = float__from_json(arg1$1);
-                        match$6 = match$9 ? /* Some */[/* tuple */[
-                              match$8[0],
-                              match$9[0]
+                      var arg0$4 = match$8[0];
+                      var arg1$1 = match$8[1];
+                      var match$9 = float__from_json(arg0$4);
+                      if (match$9) {
+                        var match$10 = float__from_json(arg1$1);
+                        match$7 = match$10 ? /* Some */[/* tuple */[
+                              match$9[0],
+                              match$10[0]
                             ]] : /* None */0;
                       } else {
-                        match$6 = /* None */0;
+                        match$7 = /* None */0;
                       }
                     }
                   } else {
-                    match$6 = /* None */0;
+                    match$7 = /* None */0;
                   }
-                  if (match$6) {
-                    var match$10 = float__from_json(arg1);
-                    match$3 = match$10 ? /* Some */[/* tuple */[
-                          match$6[0],
-                          match$10[0]
+                  if (match$7) {
+                    var match$11 = float__from_json(arg1);
+                    match$4 = match$11 ? /* Some */[/* tuple */[
+                          match$7[0],
+                          match$11[0]
                         ]] : /* None */0;
                   } else {
-                    match$3 = /* None */0;
+                    match$4 = /* None */0;
                   }
                 }
               } else {
-                match$3 = /* None */0;
+                match$4 = /* None */0;
               }
-              if (match$3) {
-                return /* Some */[/* ZoomTo */Block.__(1, [match$3[0]])];
+              if (match$4) {
+                return /* Some */[/* ZoomTo */Block.__(2, [match$4[0]])];
               } else {
                 return /* None */0;
               }
@@ -50931,26 +50845,40 @@ function action__to_devtools(value) {
             constructor: "ZoomOut",
             arguments: /* array */[]
           };
-  } else if (value.tag) {
-    return {
-            $bs: "variant",
-            type: "action",
-            constructor: "ZoomTo",
-            arguments: $$Array.of_list(/* :: */[
-                  Pervasives.failwith("tuple not supported"),
-                  /* [] */0
-                ])
-          };
   } else {
-    return {
-            $bs: "variant",
-            type: "action",
-            constructor: "SetIterations",
-            arguments: $$Array.of_list(/* :: */[
-                  value[0],
-                  /* [] */0
-                ])
-          };
+    switch (value.tag | 0) {
+      case 0 : 
+          return {
+                  $bs: "variant",
+                  type: "action",
+                  constructor: "SetIterations",
+                  arguments: $$Array.of_list(/* :: */[
+                        value[0],
+                        /* [] */0
+                      ])
+                };
+      case 1 : 
+          return {
+                  $bs: "variant",
+                  type: "action",
+                  constructor: "SetDownloadLink",
+                  arguments: $$Array.of_list(/* :: */[
+                        value[0],
+                        /* [] */0
+                      ])
+                };
+      case 2 : 
+          return {
+                  $bs: "variant",
+                  type: "action",
+                  constructor: "ZoomTo",
+                  arguments: $$Array.of_list(/* :: */[
+                        Pervasives.failwith("tuple not supported"),
+                        /* [] */0
+                      ])
+                };
+      
+    }
   }
 }
 
@@ -50962,7 +50890,7 @@ function force(v) {
           Caml_builtin_exceptions.assert_failure,
           [
             "Zoomer.re",
-            50,
+            47,
             10
           ]
         ];
@@ -50995,6 +50923,10 @@ function spy(x) {
   return x;
 }
 
+function roundish(f) {
+  return (f * 100 | 0) / 100;
+}
+
 function str(prim) {
   return prim;
 }
@@ -51012,7 +50944,7 @@ function make(onClose, attractors, _) {
               var id = match[/* id */1];
               var ctx = match[/* ctx */0];
               var reduce = param[/* reduce */3];
-              sendFlame(id, attractors, 100000000, match[/* transform */3]);
+              sendFlame(id, attractors, 100000000, match[/* transform */4]);
               WorkerClient.listen(id, (function (param) {
                       var iters = param[1];
                       var data = param[0];
@@ -51027,9 +50959,9 @@ function make(onClose, attractors, _) {
             }),
           /* didUpdate */(function (param) {
               var match = param[/* newSelf */1][/* state */4];
-              var transform = match[/* transform */3];
+              var transform = match[/* transform */4];
               var match$1 = param[/* oldSelf */0];
-              if (Caml_obj.caml_notequal(match$1[/* retainedProps */5], attractors) || transform !== match$1[/* state */4][/* transform */3]) {
+              if (Caml_obj.caml_notequal(match$1[/* retainedProps */5], attractors) || transform !== match$1[/* state */4][/* transform */4]) {
                 return sendFlame(match[/* id */1], attractors, 100000000, transform);
               } else {
                 return 0;
@@ -51041,6 +50973,12 @@ function make(onClose, attractors, _) {
           /* willUpdate */component[/* willUpdate */7],
           /* shouldUpdate */component[/* shouldUpdate */8],
           /* render */(function (param) {
+              var match = param[/* state */4];
+              var transform = match[/* transform */4];
+              var exportLink = match[/* exportLink */2];
+              var id = match[/* id */1];
+              var ctx = match[/* ctx */0];
+              var reduce = param[/* reduce */3];
               return React.createElement("div", {
                           className: Glamor.css(/* :: */[
                                 Glamor.position("absolute"),
@@ -51091,8 +51029,8 @@ function make(onClose, attractors, _) {
                             }, ReasonReact.element(/* None */0, /* None */0, RetinaCanvas.make(2000, 2000, /* None */0, /* None */0, /* None */0, /* None */0, Curry._1(param[/* handle */0], (function (context, param) {
                                             param[/* state */4][/* ctx */0][0] = /* Some */[context];
                                             return /* () */0;
-                                          })), /* array */[])), ReasonReact.element(/* None */0, /* None */0, ZoomCanvas.make(1000, Curry._1(param[/* reduce */3], (function (zoom) {
-                                            return /* ZoomTo */Block.__(1, [zoom]);
+                                          })), /* array */[])), ReasonReact.element(/* None */0, /* None */0, ZoomCanvas.make(1000, Curry._1(reduce, (function (zoom) {
+                                            return /* ZoomTo */Block.__(2, [zoom]);
                                           })), /* Some */[Glamor.css(/* :: */[
                                             Glamor.position("absolute"),
                                             /* :: */[
@@ -51102,22 +51040,64 @@ function make(onClose, attractors, _) {
                                                 /* [] */0
                                               ]
                                             ]
-                                          ])], /* array */[])), React.createElement("progress", {
+                                          ])], /* array */[])), React.createElement("div", {
                                   className: Glamor.css(/* :: */[
-                                        Glamor.width("100%"),
-                                        /* [] */0
-                                      ]),
-                                  max: Pervasives.string_of_int(100000000),
-                                  value: Pervasives.string_of_int(param[/* state */4][/* iterations */2])
-                                })));
+                                        Glamor.flexDirection("row"),
+                                        /* :: */[
+                                          Glamor.padding("8px"),
+                                          /* [] */0
+                                        ]
+                                      ])
+                                }, exportLink ? React.createElement("a", {
+                                        download: "flame.png",
+                                        href: exportLink[0]
+                                      }, "Download") : React.createElement("button", {
+                                        onClick: (function () {
+                                            var canvas = force(ctx[0]).canvas;
+                                            canvas.toBlob(Curry._1(reduce, (function (blob) {
+                                                        return /* SetDownloadLink */Block.__(1, [MyDom.createObjectURL(blob)]);
+                                                      })));
+                                            return /* () */0;
+                                          })
+                                      }, "Export"), React.createElement("div", {
+                                      className: Glamor.css(/* :: */[
+                                            Glamor.flexBasis("8px"),
+                                            /* [] */0
+                                          ])
+                                    }), React.createElement("button", {
+                                      onClick: (function () {
+                                          return WorkerClient.stop(id);
+                                        })
+                                    }, "Stop"), React.createElement("div", {
+                                      className: Glamor.css(/* :: */[
+                                            Glamor.flexBasis("8px"),
+                                            /* [] */0
+                                          ])
+                                    }), React.createElement("progress", {
+                                      className: Glamor.css(/* :: */[
+                                            Glamor.flex("1"),
+                                            /* [] */0
+                                          ]),
+                                      max: Pervasives.string_of_int(100000000),
+                                      value: Pervasives.string_of_int(match[/* iterations */3])
+                                    }), React.createElement("div", {
+                                      className: Glamor.css(/* :: */[
+                                            Glamor.flexBasis("8px"),
+                                            /* [] */0
+                                          ])
+                                    }), transform ? React.createElement("div", {
+                                        onClick: Curry._1(reduce, (function () {
+                                                return /* ZoomOut */0;
+                                              }))
+                                      }, "Zoom: " + Pervasives.string_of_float(roundish(transform[0][0][0]))) : null)));
             }),
           /* initialState */(function () {
               return /* record */[
                       /* ctx */[/* None */0],
                       /* id */Curry._1(DrawUtils.uid, /* () */0),
+                      /* exportLink : None */0,
                       /* iterations */0,
-                      /* transform : None */0,
-                      /* moving : NotMoving */0
+                      /* transform : None */0
                     ];
             }),
           /* retainedProps */attractors,
@@ -51126,66 +51106,61 @@ function make(onClose, attractors, _) {
                 return /* Update */Block.__(0, [/* record */[
                             /* ctx */state[/* ctx */0],
                             /* id */state[/* id */1],
-                            /* iterations */state[/* iterations */2],
-                            /* transform : None */0,
-                            /* moving */state[/* moving */4]
-                          ]]);
-              } else if (action.tag) {
-                var match = action[0];
-                var match$1 = match[0];
-                var match$2 = state[/* transform */3];
-                var match$3 = match$2 ? match$2[0] : Library.idMatrix;
-                var match$4 = match$3[1];
-                var f = match$4[2];
-                var match$5 = match$3[0];
-                var c = match$5[2];
-                var a = match$5[0];
-                var x0 = match$1[0] * 2;
-                var y0 = match$1[1] * 2;
-                var sz = match[1] * 2;
-                var newScale = fsize / sz * a;
-                var ox$prime = -(x0 - c) / a * newScale;
-                var oy$prime = -(y0 - f) / a * newScale;
-                var t_000 = /* tuple */[
-                  newScale,
-                  0,
-                  ox$prime
-                ];
-                var t_001 = /* tuple */[
-                  0,
-                  newScale,
-                  oy$prime
-                ];
-                var t = /* tuple */[
-                  t_000,
-                  t_001
-                ];
-                console.log(t, x0, y0, sz);
-                console.log(fsize);
-                console.log(/* tuple */[
-                      a,
-                      match$5[1],
-                      c
-                    ], /* tuple */[
-                      match$4[0],
-                      match$4[1],
-                      f
-                    ]);
-                return /* Update */Block.__(0, [/* record */[
-                            /* ctx */state[/* ctx */0],
-                            /* id */state[/* id */1],
-                            /* iterations */state[/* iterations */2],
-                            /* transform : Some */[t],
-                            /* moving */state[/* moving */4]
+                            /* exportLink */state[/* exportLink */2],
+                            /* iterations */state[/* iterations */3],
+                            /* transform : None */0
                           ]]);
               } else {
-                return /* Update */Block.__(0, [/* record */[
-                            /* ctx */state[/* ctx */0],
-                            /* id */state[/* id */1],
-                            /* iterations */action[0],
-                            /* transform */state[/* transform */3],
-                            /* moving */state[/* moving */4]
-                          ]]);
+                switch (action.tag | 0) {
+                  case 0 : 
+                      return /* Update */Block.__(0, [/* record */[
+                                  /* ctx */state[/* ctx */0],
+                                  /* id */state[/* id */1],
+                                  /* exportLink */state[/* exportLink */2],
+                                  /* iterations */action[0],
+                                  /* transform */state[/* transform */4]
+                                ]]);
+                  case 1 : 
+                      return /* Update */Block.__(0, [/* record */[
+                                  /* ctx */state[/* ctx */0],
+                                  /* id */state[/* id */1],
+                                  /* exportLink : Some */[action[0]],
+                                  /* iterations */state[/* iterations */3],
+                                  /* transform */state[/* transform */4]
+                                ]]);
+                  case 2 : 
+                      var match = action[0];
+                      var match$1 = match[0];
+                      var match$2 = state[/* transform */4];
+                      var match$3 = match$2 ? match$2[0] : Library.idMatrix;
+                      var match$4 = match$3[0];
+                      var scale = match$4[0];
+                      var match_000 = match$1[0] * 2;
+                      var match_001 = match$1[1] * 2;
+                      var match_002 = match[1] * 2;
+                      var newScale = fsize / match_002 * scale;
+                      var ox$prime = -(match_000 - match$4[2]) / scale * newScale;
+                      var oy$prime = -(match_001 - match$3[1][2]) / scale * newScale;
+                      return /* Update */Block.__(0, [/* record */[
+                                  /* ctx */state[/* ctx */0],
+                                  /* id */state[/* id */1],
+                                  /* exportLink */state[/* exportLink */2],
+                                  /* iterations */state[/* iterations */3],
+                                  /* transform : Some */[/* tuple */[
+                                      /* tuple */[
+                                        newScale,
+                                        0,
+                                        ox$prime
+                                      ],
+                                      /* tuple */[
+                                        0,
+                                        newScale,
+                                        oy$prime
+                                      ]
+                                    ]]
+                                ]]);
+                  
+                }
               }
             }),
           /* jsElementWrapped */component[/* jsElementWrapped */13]
@@ -51229,15 +51204,13 @@ exports.consume             = consume;
 exports.matrix__to_json     = matrix__to_json;
 exports.matrix__from_json   = matrix__from_json;
 exports.matrix__to_devtools = matrix__to_devtools;
-exports.moving__to_json     = moving__to_json;
-exports.moving__from_json   = moving__from_json;
-exports.moving__to_devtools = moving__to_devtools;
 exports.action__to_json     = action__to_json;
 exports.action__from_json   = action__from_json;
 exports.action__to_devtools = action__to_devtools;
 exports.force               = force;
 exports.combineMatricies    = combineMatricies;
 exports.spy                 = spy;
+exports.roundish            = roundish;
 exports.str                 = str;
 exports.component           = component;
 exports.make                = make;
